@@ -1,0 +1,16 @@
+{
+  "engine": "ff1",
+  "alphabet": "0123456789",
+  "cases": [
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "0123456789" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "9876543210" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "0000000000" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "9999999999" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "1111111111" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "123456" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "000000" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "55555555555555" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "12345678901234567890" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "00000000000000000000" }
+  ]
+}

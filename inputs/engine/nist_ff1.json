@@ -1,0 +1,16 @@
+{
+  "engine": "ff1",
+  "source": "NIST SP 800-38G",
+  "note": "These are the official NIST test vectors. Expected outputs are known-correct.",
+  "cases": [
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "alphabet": "0123456789", "plaintext": "0123456789", "expected": "2433477484" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "39383736353433323130", "alphabet": "0123456789", "plaintext": "0123456789", "expected": "6124200773" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "3737373770717273373737", "alphabet": "0123456789abcdefghijklmnopqrstuvwxyz", "plaintext": "0123456789abcdefghi", "expected": "a9tv40mll9kdu509eum" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F", "tweak": "", "alphabet": "0123456789", "plaintext": "0123456789", "expected": "2830668132" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F", "tweak": "39383736353433323130", "alphabet": "0123456789", "plaintext": "0123456789", "expected": "2496655549" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F", "tweak": "3737373770717273373737", "alphabet": "0123456789abcdefghijklmnopqrstuvwxyz", "plaintext": "0123456789abcdefghi", "expected": "xbj3kv35jrawxv32ysr" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94", "tweak": "", "alphabet": "0123456789", "plaintext": "0123456789", "expected": "6657667009" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94", "tweak": "39383736353433323130", "alphabet": "0123456789", "plaintext": "0123456789", "expected": "1001623463" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94", "tweak": "3737373770717273373737", "alphabet": "0123456789abcdefghijklmnopqrstuvwxyz", "plaintext": "0123456789abcdefghi", "expected": "xs8a0azh2avyalyzuwd" }
+  ]
+}

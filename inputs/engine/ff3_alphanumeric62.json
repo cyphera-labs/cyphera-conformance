@@ -1,0 +1,16 @@
+{
+  "engine": "ff3",
+  "alphabet": "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  "cases": [
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "0000000000000000", "plaintext": "0123456789" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "0000000000000000", "plaintext": "HelloWorld" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "0000000000000000", "plaintext": "aBcDeFgHiJ" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "0000000000000000", "plaintext": "ZZZZZZZZZZ" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "0000000000000000", "plaintext": "0000000000" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "0102030405060708", "plaintext": "0123456789" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "0102030405060708", "plaintext": "HelloWorld" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "deadbeefcafebabe", "plaintext": "TestInput1" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "0000000000000000", "plaintext": "abcDEF1234" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "0000000000000000", "plaintext": "Zz9Yy8Xx7W" }
+  ]
+}

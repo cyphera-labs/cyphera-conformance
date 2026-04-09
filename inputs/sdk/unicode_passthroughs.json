@@ -1,0 +1,69 @@
+{
+  "note": "Unicode and special character passthrough tests via SDK protect/access.",
+  "config": {
+    "policies": {
+      "test": {
+        "engine": "ff1",
+        "key_ref": "test-key",
+        "tag": "T04"
+      }
+    },
+    "keys": {
+      "test-key": {
+        "material": "2B7E151628AED2A6ABF7158809CF4F3C"
+      }
+    }
+  },
+  "cases": [
+    {
+      "policy": "test",
+      "plaintext": "José123456",
+      "note": "accented char é is passthrough"
+    },
+    {
+      "policy": "test",
+      "plaintext": "naïve12345",
+      "note": "accented ï passthrough"
+    },
+    {
+      "policy": "test",
+      "plaintext": "über987654",
+      "note": "umlaut ü passthrough"
+    },
+    {
+      "policy": "test",
+      "plaintext": "123\t456\t789",
+      "note": "tabs as passthrough"
+    },
+    {
+      "policy": "test",
+      "plaintext": "123\n456\n789",
+      "note": "newlines as passthrough"
+    },
+    {
+      "policy": "test",
+      "plaintext": "hello—world1",
+      "note": "em dash passthrough"
+    },
+    {
+      "policy": "test",
+      "plaintext": "price£99GBP",
+      "note": "pound sign passthrough"
+    },
+    {
+      "policy": "test",
+      "plaintext": "cost€50EUR",
+      "note": "euro sign passthrough"
+    },
+    {
+      "policy": "test",
+      "plaintext": "temp°72F",
+      "note": "degree symbol passthrough"
+    },
+    {
+      "policy": "test",
+      "plaintext": "100%done99",
+      "note": "percent sign passthrough"
+    }
+  ]
+}

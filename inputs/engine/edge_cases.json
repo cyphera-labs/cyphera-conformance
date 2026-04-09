@@ -1,0 +1,16 @@
+{
+  "engine": "ff1",
+  "note": "Edge cases — minimum lengths, boundary conditions, unusual inputs",
+  "cases": [
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "alphabet": "0123456789", "plaintext": "000000", "note": "minimum NIST length for radix 10" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "alphabet": "0123456789", "plaintext": "999999", "note": "all nines min length" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "alphabet": "0123456789", "plaintext": "000001", "note": "near-zero min length" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "alphabet": "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", "plaintext": "aaaa", "note": "4 chars radix 62 — meets NIST minimum" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "alphabet": "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", "plaintext": "ZZZZ", "note": "4 chars all max radix 62" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "alphabet": "0123456789", "plaintext": "01234567890123456789012345678901", "note": "32 digits — long input" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "alphabet": "0123456789", "plaintext": "99999999999999999999999999999999", "note": "32 nines — max value long input" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "alphabet": "ab", "plaintext": "aababababababababababababababababab", "note": "radix 2 — binary alphabet" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "alphabet": "0123456789", "plaintext": "1234567890123456789012345678901234567890", "note": "40 digits" },
+    { "key": "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", "tweak": "", "alphabet": "0123456789", "plaintext": "0123456789", "note": "all-ones key" }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "note": "NIST FF1 test plaintexts run through the SDK protect/access. Proves SDK layer does not corrupt the underlying crypto. These use untagged digits policies to match NIST output exactly.",
+  "config": {
+    "policies": {
+      "nist_digits_128": { "engine": "ff1", "alphabet": "digits", "tag_enabled": false, "key_ref": "nist-128" },
+      "nist_digits_192": { "engine": "ff1", "alphabet": "digits", "tag_enabled": false, "key_ref": "nist-192" },
+      "nist_digits_256": { "engine": "ff1", "alphabet": "digits", "tag_enabled": false, "key_ref": "nist-256" },
+      "nist_alpha36_128": { "engine": "ff1", "alphabet": "0123456789abcdefghijklmnopqrstuvwxyz", "tag_enabled": false, "key_ref": "nist-128" },
+      "nist_alpha36_192": { "engine": "ff1", "alphabet": "0123456789abcdefghijklmnopqrstuvwxyz", "tag_enabled": false, "key_ref": "nist-192" },
+      "nist_alpha36_256": { "engine": "ff1", "alphabet": "0123456789abcdefghijklmnopqrstuvwxyz", "tag_enabled": false, "key_ref": "nist-256" }
+    },
+    "keys": {
+      "nist-128": { "material": "2B7E151628AED2A6ABF7158809CF4F3C" },
+      "nist-192": { "material": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F" },
+      "nist-256": { "material": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94" }
+    }
+  },
+  "cases": [
+    { "policy": "nist_digits_128", "plaintext": "0123456789", "expected": "2433477484", "note": "NIST sample 1" },
+    { "policy": "nist_digits_192", "plaintext": "0123456789", "expected": "2830668132", "note": "NIST sample 4" },
+    { "policy": "nist_digits_256", "plaintext": "0123456789", "expected": "6657667009", "note": "NIST sample 7" },
+    { "policy": "nist_digits_128", "plaintext": "0123456789", "note": "roundtrip 128" },
+    { "policy": "nist_digits_192", "plaintext": "0123456789", "note": "roundtrip 192" },
+    { "policy": "nist_digits_256", "plaintext": "0123456789", "note": "roundtrip 256" },
+    { "policy": "nist_digits_128", "plaintext": "890121234567890000", "note": "longer input 128" },
+    { "policy": "nist_digits_192", "plaintext": "890121234567890000", "note": "longer input 192" },
+    { "policy": "nist_digits_256", "plaintext": "890121234567890000", "note": "longer input 256" },
+    { "policy": "nist_alpha36_128", "plaintext": "0123456789abcdefghi", "expected": "a9tv40mll9kdu509eum", "note": "NIST alpha36 sample 3 — note: no tweak so won't match NIST (NIST uses tweak)" }
+  ]
+}

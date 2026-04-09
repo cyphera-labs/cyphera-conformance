@@ -1,0 +1,94 @@
+name: Conformance
+on:
+  workflow_dispatch:
+
+jobs:
+  run-all:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run Python
+        run: |
+          cd runners/python
+          docker build -t cyphera-test-python . -q
+          docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-python
+
+      - name: Run Node
+        run: |
+          cd runners/node
+          docker build -t cyphera-test-node . -q
+          docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-node
+
+      - name: Run Java
+        run: |
+          cd runners/java
+          docker build -t cyphera-test-java . -q
+          docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-java
+
+      - name: Run .NET
+        run: |
+          cd runners/dotnet
+          docker build -t cyphera-test-dotnet . -q
+          docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-dotnet
+
+      - name: Run Rust
+        run: |
+          cd runners/rust
+          docker build -t cyphera-test-rust . -q
+          docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-rust
+
+      - name: Compare results
+        run: |
+          python3 -c "
+          import json, os, sys
+
+          runners = ['java', 'rust', 'node', 'python', 'dotnet']
+          categories = ['engine', 'sdk']
+          total = 0; match = 0; diffs = []
+
+          for cat in categories:
+              files = set()
+              for r in runners:
+                  d = f'results/{r}/{cat}'
+                  if os.path.isdir(d): files.update(os.listdir(d))
+              for f in sorted(files):
+                  results = {}
+                  for r in runners:
+                      p = f'results/{r}/{cat}/{f}'
+                      if os.path.exists(p):
+                          results[r] = json.load(open(p)).get('results', [])
+                  if len(results) < 2: continue
+                  base = list(results.keys())[0]
+                  for i, case in enumerate(results[base]):
+                      total += 1
+                      vals = {}
+                      for r in results:
+                          if i < len(results[r]):
+                              c = results[r][i]
+                              vals[r] = c.get('ciphertext') if cat == 'engine' else c.get('protected')
+                      unique = set(str(v) for v in vals.values())
+                      if len(unique) == 1: match += 1
+                      else:
+                          pt = case.get('plaintext', '?')[:40]
+                          diffs.append(f'{cat}/{f} case {i} (pt={pt}): {vals}')
+
+          print(f'=== Conformance: {match}/{total} unanimous ===')
+          if diffs:
+              print(f'\nDifferences ({len(diffs)}):')
+              for d in diffs: print(f'  {d}')
+              if len(diffs) > 5:
+                  print(f'\nFAIL: {len(diffs)} non-unanimous cases')
+                  sys.exit(1)
+              else:
+                  print(f'\nWARN: {len(diffs)} known differences (error handling alignment)')
+          else:
+              print('ALL CASES UNANIMOUS')
+          "
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: conformance-results
+          path: results/

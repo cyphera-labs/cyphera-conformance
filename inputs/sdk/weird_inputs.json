@@ -1,0 +1,119 @@
+{
+  "note": "Weird, adversarial, and boundary-condition inputs via SDK protect/access.",
+  "config": {
+    "policies": {
+      "test": {
+        "engine": "ff1",
+        "key_ref": "test-key",
+        "tag": "T04"
+      }
+    },
+    "keys": {
+      "test-key": {
+        "material": "2B7E151628AED2A6ABF7158809CF4F3C"
+      }
+    }
+  },
+  "cases": [
+    {
+      "policy": "test",
+      "plaintext": "----abcd1234----",
+      "note": "all passthroughs at start and end"
+    },
+    {
+      "policy": "test",
+      "plaintext": "-a-b-c-d-1-2-3-4-",
+      "note": "alternating passthrough and encryptable"
+    },
+    {
+      "policy": "test",
+      "plaintext": "...abcd1234...",
+      "note": "dots everywhere"
+    },
+    {
+      "policy": "test",
+      "plaintext": "a",
+      "note": "single char — below NIST minimum, expect error"
+    },
+    {
+      "policy": "test",
+      "plaintext": "ab",
+      "note": "two chars — at NIST minimum for large radix"
+    },
+    {
+      "policy": "test",
+      "plaintext": "abc",
+      "note": "three chars"
+    },
+    {
+      "policy": "test",
+      "plaintext": "abcd",
+      "note": "four chars — safe for radix 62"
+    },
+    {
+      "policy": "test",
+      "plaintext": "---",
+      "note": "ALL passthroughs, zero encryptable chars — expect error"
+    },
+    {
+      "policy": "test",
+      "plaintext": "!!!???...",
+      "note": "all passthroughs no encryptable — expect error"
+    },
+    {
+      "policy": "test",
+      "plaintext": " abc123 ",
+      "note": "leading and trailing spaces as passthrough"
+    },
+    {
+      "policy": "test",
+      "plaintext": "abc\u0000def123",
+      "note": "null byte in the middle as passthrough"
+    },
+    {
+      "policy": "test",
+      "plaintext": "​abc123​",
+      "note": "zero-width space as passthrough"
+    },
+    {
+      "policy": "test",
+      "plaintext": "café42latte",
+      "note": "accented e as passthrough"
+    },
+    {
+      "policy": "test",
+      "plaintext": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+      "note": "124 chars — large input all encryptable"
+    },
+    {
+      "policy": "test",
+      "plaintext": "a]b[c{d}e<f>g",
+      "note": "brackets and angles as passthrough"
+    },
+    {
+      "policy": "test",
+      "plaintext": "abc'def\"ghi\\jkl",
+      "note": "quotes and backslash as passthrough"
+    },
+    {
+      "policy": "test",
+      "plaintext": "abc&def|ghi;jkl",
+      "note": "ampersand pipe semicolon as passthrough"
+    },
+    {
+      "policy": "test",
+      "plaintext": "line1\r\nline2\r\n3",
+      "note": "CRLF as passthrough"
+    },
+    {
+      "policy": "test",
+      "plaintext": "abc123def456ghi789jkl012mno345pqr678stu901vwx234yz",
+      "note": "50 chars mixed all encryptable"
+    },
+    {
+      "policy": "test",
+      "plaintext": "aA0bB1cC2dD3eE4fF5gG6hH7iI8jJ9kK0lL1mM2nN3oO4pP5qQ6rR7sS8tT9",
+      "note": "62 chars — every alphabet char once"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "name": "cyphera-test-runner",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "cyphera": "0.0.1-alpha.1"
+  }
+}

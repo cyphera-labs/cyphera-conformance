@@ -1,0 +1,68 @@
+{
+  "library": "fpe 0.6.1 (crates.io)",
+  "results": [
+    {
+      "ciphertext": "2433477484",
+      "error": null,
+      "name": "NIST sample 1",
+      "plaintext": "0123456789",
+      "roundtrip": true
+    },
+    {
+      "ciphertext": "6124200773",
+      "error": null,
+      "name": "NIST sample 2 (with tweak)",
+      "plaintext": "0123456789",
+      "roundtrip": true
+    },
+    {
+      "ciphertext": "a9tv40mll9kdu509eum",
+      "error": null,
+      "name": "NIST sample 3 (radix 36)",
+      "plaintext": "0123456789abcdefghi",
+      "roundtrip": true
+    },
+    {
+      "ciphertext": "9UPVMAoChD",
+      "error": null,
+      "name": "Short radix 62 (10 chars, d<=16, no expandS loop)",
+      "plaintext": "0123456789",
+      "roundtrip": true
+    },
+    {
+      "ciphertext": "Zi84X5xfKUtR1goe3TqCEJGWCVT4YqrxTDMmReQl0Vut7svZgy",
+      "error": null,
+      "name": "Medium radix 62 (50 chars, d=24, 2 blocks, expandS j=1 only)",
+      "plaintext": "abc123def456ghi789jkl012mno345pqr678stu901vwx234yz",
+      "roundtrip": true
+    },
+    {
+      "ciphertext": "DLaKPatPhTd60gWY3boIsB5qZ32Bcg6BGbY83HXpDooE5doS9TdQ8XCzZGECOeAi1O234RORZzzpTUxKSa",
+      "error": null,
+      "name": "Long radix 62 (80 chars, d=36+, 3 blocks, expandS j=1,2 — BUG THRESHOLD)",
+      "plaintext": "abc123def456ghi789jkl012mno345pqr678stu901vwx234yzABC123DEF456GHI789JKL012MNO345PQ",
+      "roundtrip": true
+    },
+    {
+      "ciphertext": "BCeyvEfRXg2XMibjQuGHJ4ecccXyK2aVK26vCnkwO3sorUH11cgfkKVTzBEAQE3mSsypsY1Xzl5sNl6ylVauYvnnWD5qFclcsI23CGLb56k5zyNxS199VXOXuiLy",
+      "error": null,
+      "name": "Very long radix 62 (124 chars)",
+      "plaintext": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+      "roundtrip": true
+    },
+    {
+      "ciphertext": "107102517282301243362215964557",
+      "error": null,
+      "name": "Radix 10 long (30 digits)",
+      "plaintext": "123456789012345678901234567890",
+      "roundtrip": true
+    },
+    {
+      "ciphertext": "6657667009",
+      "error": null,
+      "name": "256-bit key NIST sample 7",
+      "plaintext": "0123456789",
+      "roundtrip": true
+    }
+  ]
+}

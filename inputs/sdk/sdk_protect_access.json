@@ -1,0 +1,86 @@
+{
+  "note": "SDK-level protect/access tests. These test the full stack: policy lookup, tag generation, passthrough handling, engine dispatch.",
+  "config": {
+    "policies": {
+      "ssn": {
+        "engine": "ff1",
+        "key_ref": "test-key",
+        "tag": "T01"
+      },
+      "ssn_digits": {
+        "engine": "ff1",
+        "alphabet": "digits",
+        "tag_enabled": false,
+        "key_ref": "test-key"
+      },
+      "cc": {
+        "engine": "ff1",
+        "key_ref": "test-key",
+        "tag": "T02"
+      },
+      "name_lower": {
+        "engine": "ff1",
+        "alphabet": "alpha_lower",
+        "key_ref": "test-key",
+        "tag": "T03"
+      }
+    },
+    "keys": {
+      "test-key": {
+        "material": "2B7E151628AED2A6ABF7158809CF4F3C"
+      }
+    }
+  },
+  "cases": [
+    {
+      "policy": "ssn",
+      "plaintext": "123456789",
+      "note": "basic tagged alphanumeric"
+    },
+    {
+      "policy": "ssn",
+      "plaintext": "987654321",
+      "note": "different input same policy"
+    },
+    {
+      "policy": "ssn",
+      "plaintext": "000000000",
+      "note": "all zeros"
+    },
+    {
+      "policy": "ssn",
+      "plaintext": "999999999",
+      "note": "all nines"
+    },
+    {
+      "policy": "ssn",
+      "plaintext": "111111111",
+      "note": "repeating digit"
+    },
+    {
+      "policy": "ssn_digits",
+      "plaintext": "123456789",
+      "note": "untagged digits — same length"
+    },
+    {
+      "policy": "ssn_digits",
+      "plaintext": "987654321",
+      "note": "untagged digits — different input"
+    },
+    {
+      "policy": "cc",
+      "plaintext": "4111111111111111",
+      "note": "credit card length"
+    },
+    {
+      "policy": "name_lower",
+      "plaintext": "johnsmith",
+      "note": "alpha lower"
+    },
+    {
+      "policy": "name_lower",
+      "plaintext": "abcdefghij",
+      "note": "alpha lower sequential"
+    }
+  ]
+}

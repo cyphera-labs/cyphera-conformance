@@ -1,0 +1,16 @@
+{
+  "engine": "ff1",
+  "alphabet": "abcdefghijklmnopqrstuvwxyz",
+  "cases": [
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "abcdefghij" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "helloworld" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "zzzzzzzzzz" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "aaaaaaaaaa" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "abcdef" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "testinput" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "qwertyuiop" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "mnopqrstuv" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "abcdefghijklmnop" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "zxywvutsrqponmlk" }
+  ]
+}

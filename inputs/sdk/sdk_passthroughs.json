@@ -1,0 +1,75 @@
+{
+  "note": "Passthrough character tests. Non-alphabet chars must survive protect/access round-trip in exact original positions.",
+  "config": {
+    "policies": {
+      "ssn": {
+        "engine": "ff1",
+        "key_ref": "test-key",
+        "tag": "T01"
+      },
+      "ssn_digits": {
+        "engine": "ff1",
+        "alphabet": "digits",
+        "tag_enabled": false,
+        "key_ref": "test-key"
+      }
+    },
+    "keys": {
+      "test-key": {
+        "material": "2B7E151628AED2A6ABF7158809CF4F3C"
+      }
+    }
+  },
+  "cases": [
+    {
+      "policy": "ssn",
+      "plaintext": "123-45-6789",
+      "note": "SSN format — dashes"
+    },
+    {
+      "policy": "ssn",
+      "plaintext": "123-456-7890",
+      "note": "phone format — dashes"
+    },
+    {
+      "policy": "ssn",
+      "plaintext": "(123) 456-7890",
+      "note": "phone with parens and space"
+    },
+    {
+      "policy": "ssn",
+      "plaintext": "1234 5678 9012 3456",
+      "note": "card format — spaces"
+    },
+    {
+      "policy": "ssn",
+      "plaintext": "12.34.56.78",
+      "note": "dots as passthrough"
+    },
+    {
+      "policy": "ssn",
+      "plaintext": "12/34/5678",
+      "note": "date format — slashes"
+    },
+    {
+      "policy": "ssn",
+      "plaintext": "-123456789",
+      "note": "leading passthrough"
+    },
+    {
+      "policy": "ssn",
+      "plaintext": "123456789-",
+      "note": "trailing passthrough"
+    },
+    {
+      "policy": "ssn",
+      "plaintext": "--123--456--",
+      "note": "consecutive passthroughs"
+    },
+    {
+      "policy": "ssn_digits",
+      "plaintext": "123-45-6789",
+      "note": "untagged with passthroughs"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "engine": "ff1",
+  "alphabet": "0123456789",
+  "cases": [
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "0123456789", "note": "128-bit key" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F", "tweak": "", "plaintext": "0123456789", "note": "192-bit key" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94", "tweak": "", "plaintext": "0123456789", "note": "256-bit key" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "9876543210", "note": "128-bit key" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F", "tweak": "", "plaintext": "9876543210", "note": "192-bit key" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94", "tweak": "", "plaintext": "9876543210", "note": "256-bit key" },
+    { "key": "00000000000000000000000000000000", "tweak": "", "plaintext": "0123456789", "note": "zero key 128" },
+    { "key": "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", "tweak": "", "plaintext": "0123456789", "note": "max key 128" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3C", "tweak": "", "plaintext": "000000", "note": "short input 128" },
+    { "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94", "tweak": "", "plaintext": "000000", "note": "short input 256" }
+  ]
+}

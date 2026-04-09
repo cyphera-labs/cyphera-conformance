@@ -1,0 +1,45 @@
+{
+  "library": "mysto 0.8.1 (pypi)",
+  "results": [
+    {
+      "name": "NIST sample 1",
+      "plaintext": "0123456789",
+      "nist_expected": "2433477484"
+    },
+    {
+      "name": "NIST sample 2 (with tweak)",
+      "plaintext": "0123456789",
+      "nist_expected": "6124200773"
+    },
+    {
+      "name": "NIST sample 3 (radix 36)",
+      "plaintext": "0123456789abcdefghi",
+      "nist_expected": "a9tv40mll9kdu509eum"
+    },
+    {
+      "name": "Short radix 62 (10 chars, d<=16, no expandS loop)",
+      "plaintext": "0123456789"
+    },
+    {
+      "name": "Medium radix 62 (50 chars, d=24, 2 blocks, expandS j=1 only)",
+      "plaintext": "abc123def456ghi789jkl012mno345pqr678stu901vwx234yz"
+    },
+    {
+      "name": "Long radix 62 (80 chars, d=36+, 3 blocks, expandS j=1,2 \u2014 BUG THRESHOLD)",
+      "plaintext": "abc123def456ghi789jkl012mno345pqr678stu901vwx234yzABC123DEF456GHI789JKL012MNO345PQ"
+    },
+    {
+      "name": "Very long radix 62 (124 chars)",
+      "plaintext": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    },
+    {
+      "name": "Radix 10 long (30 digits)",
+      "plaintext": "123456789012345678901234567890"
+    },
+    {
+      "name": "256-bit key NIST sample 7",
+      "plaintext": "0123456789",
+      "nist_expected": "6657667009"
+    }
+  ]
+}

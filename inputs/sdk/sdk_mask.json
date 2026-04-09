@@ -1,0 +1,85 @@
+{
+  "note": "Mask engine tests. One-way — no round-trip. Output must match exactly.",
+  "config": {
+    "policies": {
+      "ssn_mask": {
+        "engine": "mask",
+        "pattern": "last4",
+        "tag_enabled": false
+      },
+      "cc_mask": {
+        "engine": "mask",
+        "pattern": "last4",
+        "tag_enabled": false
+      },
+      "name_mask": {
+        "engine": "mask",
+        "pattern": "first1",
+        "tag_enabled": false
+      },
+      "phone_mask": {
+        "engine": "mask",
+        "pattern": "last4",
+        "tag_enabled": false
+      },
+      "full_mask": {
+        "engine": "mask",
+        "pattern": "full",
+        "tag_enabled": false
+      }
+    },
+    "keys": {}
+  },
+  "cases": [
+    {
+      "policy": "ssn_mask",
+      "plaintext": "123-45-6789",
+      "expected": "*******6789"
+    },
+    {
+      "policy": "ssn_mask",
+      "plaintext": "987-65-4321",
+      "expected": "*******4321"
+    },
+    {
+      "policy": "ssn_mask",
+      "plaintext": "000-00-0000",
+      "expected": "*******0000"
+    },
+    {
+      "policy": "cc_mask",
+      "plaintext": "4111111111111111",
+      "expected": "************1111"
+    },
+    {
+      "policy": "cc_mask",
+      "plaintext": "5500000000000004",
+      "expected": "************0004"
+    },
+    {
+      "policy": "name_mask",
+      "plaintext": "Leslie",
+      "expected": "L*****"
+    },
+    {
+      "policy": "name_mask",
+      "plaintext": "John",
+      "expected": "J***"
+    },
+    {
+      "policy": "phone_mask",
+      "plaintext": "1234567890",
+      "expected": "******7890"
+    },
+    {
+      "policy": "phone_mask",
+      "plaintext": "5551234567",
+      "expected": "******4567"
+    },
+    {
+      "policy": "full_mask",
+      "plaintext": "123-45-6789",
+      "expected": "***********"
+    }
+  ]
+}

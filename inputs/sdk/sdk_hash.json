@@ -1,0 +1,81 @@
+{
+  "note": "Hash engine tests. One-way, deterministic. Same input must always produce same output. HMAC with key.",
+  "config": {
+    "policies": {
+      "ssn_hash": {
+        "engine": "hash",
+        "algorithm": "sha256",
+        "key_ref": "test-key",
+        "tag_enabled": false
+      },
+      "ssn_hash_512": {
+        "engine": "hash",
+        "algorithm": "sha512",
+        "key_ref": "test-key",
+        "tag_enabled": false
+      },
+      "ssn_hash_plain": {
+        "engine": "hash",
+        "algorithm": "sha256",
+        "tag_enabled": false
+      }
+    },
+    "keys": {
+      "test-key": {
+        "material": "2B7E151628AED2A6ABF7158809CF4F3C"
+      }
+    }
+  },
+  "cases": [
+    {
+      "policy": "ssn_hash",
+      "plaintext": "123-45-6789",
+      "note": "HMAC-SHA256"
+    },
+    {
+      "policy": "ssn_hash",
+      "plaintext": "987-65-4321",
+      "note": "HMAC-SHA256 different input"
+    },
+    {
+      "policy": "ssn_hash",
+      "plaintext": "000-00-0000",
+      "note": "HMAC-SHA256 zeros"
+    },
+    {
+      "policy": "ssn_hash",
+      "plaintext": "123-45-6789",
+      "note": "HMAC-SHA256 same as case 0 — must match"
+    },
+    {
+      "policy": "ssn_hash_512",
+      "plaintext": "123-45-6789",
+      "note": "HMAC-SHA512"
+    },
+    {
+      "policy": "ssn_hash_512",
+      "plaintext": "987-65-4321",
+      "note": "HMAC-SHA512 different input"
+    },
+    {
+      "policy": "ssn_hash_plain",
+      "plaintext": "123-45-6789",
+      "note": "plain SHA256 no key"
+    },
+    {
+      "policy": "ssn_hash_plain",
+      "plaintext": "987-65-4321",
+      "note": "plain SHA256 no key different"
+    },
+    {
+      "policy": "ssn_hash_plain",
+      "plaintext": "123-45-6789",
+      "note": "plain SHA256 same — must match case 6"
+    },
+    {
+      "policy": "ssn_hash",
+      "plaintext": "",
+      "note": "empty string HMAC"
+    }
+  ]
+}
