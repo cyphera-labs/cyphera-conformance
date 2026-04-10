@@ -3,55 +3,126 @@ on:
   workflow_dispatch:
 
 jobs:
-  run-all:
+  python:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-
-      - name: Run Python
+      - name: Build & Run
         run: |
           cd runners/python
-          docker build -t cyphera-test-python . -q
+          docker build -t cyphera-test-python .
           docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-python
+      - uses: actions/upload-artifact@v4
+        with:
+          name: results-python
+          path: results/python/
 
-      - name: Run Node
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build & Run
         run: |
           cd runners/node
-          docker build -t cyphera-test-node . -q
+          docker build -t cyphera-test-node .
           docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-node
+      - uses: actions/upload-artifact@v4
+        with:
+          name: results-node
+          path: results/node/
 
-      - name: Run Java
+  java:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build & Run
         run: |
           cd runners/java
-          docker build -t cyphera-test-java . -q
+          docker build -t cyphera-test-java .
           docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-java
+      - uses: actions/upload-artifact@v4
+        with:
+          name: results-java
+          path: results/java/
 
-      - name: Run .NET
+  dotnet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build & Run
         run: |
           cd runners/dotnet
-          docker build -t cyphera-test-dotnet . -q
+          docker build -t cyphera-test-dotnet .
           docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-dotnet
+      - uses: actions/upload-artifact@v4
+        with:
+          name: results-dotnet
+          path: results/dotnet/
 
-      - name: Run Rust
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build & Run
         run: |
           cd runners/rust
-          docker build -t cyphera-test-rust . -q
+          docker build -t cyphera-test-rust .
           docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-rust
+      - uses: actions/upload-artifact@v4
+        with:
+          name: results-rust
+          path: results/rust/
 
-      - name: Run PHP
+  php:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build & Run
         run: |
           cd runners/php
-          docker build -t cyphera-test-php . -q
+          docker build -t cyphera-test-php .
           docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-php
+      - uses: actions/upload-artifact@v4
+        with:
+          name: results-php
+          path: results/php/
 
-      - name: Run Swift
+  swift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build & Run
         run: |
           cd runners/swift
-          docker build -t cyphera-test-swift . -q
+          docker build -t cyphera-test-swift .
           docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-swift
+      - uses: actions/upload-artifact@v4
+        with:
+          name: results-swift
+          path: results/swift/
+
+  compare:
+    needs: [python, node, java, dotnet, rust, php, swift]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: results/
+          pattern: results-*
+          merge-multiple: false
 
       - name: Compare results
         run: |
+          # Restructure: results/results-{runner}/{cat}/{file} → flat
+          mkdir -p flat
+          for d in results/results-*/; do
+            runner=$(basename "$d" | sed 's/results-//')
+            if [ -d "$d" ]; then
+              cp -r "$d" "flat/$runner"
+            fi
+          done
+
           python3 -c "
           import json, os, sys
 
@@ -62,12 +133,12 @@ jobs:
           for cat in categories:
               files = set()
               for r in runners:
-                  d = f'results/{r}/{cat}'
+                  d = f'flat/{r}/{cat}'
                   if os.path.isdir(d): files.update(os.listdir(d))
               for f in sorted(files):
                   results = {}
                   for r in runners:
-                      p = f'results/{r}/{cat}/{f}'
+                      p = f'flat/{r}/{cat}/{f}'
                       if os.path.exists(p):
                           results[r] = json.load(open(p)).get('results', [])
                   if len(results) < 2: continue
@@ -98,9 +169,8 @@ jobs:
               print('ALL CASES UNANIMOUS')
           "
 
-      - name: Upload results
+      - uses: actions/upload-artifact@v4
         if: always()
-        uses: actions/upload-artifact@v4
         with:
           name: conformance-results
-          path: results/
+          path: flat/
