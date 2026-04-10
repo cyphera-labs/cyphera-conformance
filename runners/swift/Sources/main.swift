@@ -40,7 +40,17 @@ print("Done. Results in \(outputDir)")
 
 func hexToBytes(_ hex: String) -> Data {
     if hex.isEmpty { return Data() }
-    return Data(hexString: hex)
+    let len = hex.count / 2
+    var data = Data(capacity: len)
+    var i = hex.startIndex
+    for _ in 0..<len {
+        let j = hex.index(i, offsetBy: 2)
+        if let num = UInt8(hex[i..<j], radix: 16) {
+            data.append(num)
+        }
+        i = j
+    }
+    return data
 }
 
 func runEngine(_ input: [String: Any]) -> [String: Any] {
