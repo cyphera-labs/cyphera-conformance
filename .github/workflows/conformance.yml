@@ -38,12 +38,24 @@ jobs:
           docker build -t cyphera-test-rust . -q
           docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-rust
 
+      - name: Run PHP
+        run: |
+          cd runners/php
+          docker build -t cyphera-test-php . -q
+          docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-php
+
+      - name: Run Swift
+        run: |
+          cd runners/swift
+          docker build -t cyphera-test-swift . -q
+          docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-swift
+
       - name: Compare results
         run: |
           python3 -c "
           import json, os, sys
 
-          runners = ['java', 'rust', 'node', 'python', 'dotnet']
+          runners = ['java', 'rust', 'node', 'python', 'dotnet', 'php', 'swift']
           categories = ['engine', 'sdk']
           total = 0; match = 0; diffs = []
 
