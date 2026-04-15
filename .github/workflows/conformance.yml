@@ -12,7 +12,7 @@ jobs:
           cd runners/python
           docker build -t cyphera-test-python .
           docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-python
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: results-python
           path: results/python/
@@ -26,7 +26,7 @@ jobs:
           cd runners/node
           docker build -t cyphera-test-node .
           docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-node
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: results-node
           path: results/node/
@@ -40,7 +40,7 @@ jobs:
           cd runners/java
           docker build -t cyphera-test-java .
           docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-java
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: results-java
           path: results/java/
@@ -54,7 +54,7 @@ jobs:
           cd runners/dotnet
           docker build -t cyphera-test-dotnet .
           docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-dotnet
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: results-dotnet
           path: results/dotnet/
@@ -68,7 +68,7 @@ jobs:
           cd runners/rust
           docker build -t cyphera-test-rust .
           docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-rust
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: results-rust
           path: results/rust/
@@ -82,7 +82,7 @@ jobs:
           cd runners/php
           docker build -t cyphera-test-php .
           docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-php
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: results-php
           path: results/php/
@@ -96,7 +96,7 @@ jobs:
           cd runners/swift
           docker build -t cyphera-test-swift .
           docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-swift
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: results-swift
           path: results/swift/
@@ -169,7 +169,7 @@ jobs:
               print('ALL CASES UNANIMOUS')
           "
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: conformance-results
