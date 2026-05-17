@@ -62,7 +62,7 @@ def run_sdk(data):
     results = []
     for c in data["cases"]:
         r = dict(c)
-        policy = c.get("policy", "test")
+        policy = c.get("configuration", "test")
         pt = c.get("plaintext", "")
 
         if not client or isinstance(client, dict):
@@ -74,8 +74,8 @@ def run_sdk(data):
             protected = client.protect(pt, policy)
             r["protected"] = protected
 
-            engine_type = data.get("config", {}).get("policies", {}).get(policy, {}).get("engine", "ff1")
-            tag_enabled = data.get("config", {}).get("policies", {}).get(policy, {}).get("tag_enabled", True)
+            engine_type = data.get("config", {}).get("configurations", {}).get(policy, {}).get("engine", "ff1")
+            tag_enabled = data.get("config", {}).get("configurations", {}).get(policy, {}).get("header_enabled", True)
 
             if engine_type == "mask":
                 if "expected" in c:

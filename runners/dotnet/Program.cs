@@ -126,7 +126,7 @@ JsonNode RunSdk(JsonNode input)
     foreach (var c in input["cases"]!.AsArray())
     {
         var r = JsonNode.Parse(c!.ToJsonString())!;
-        var policy = c!["policy"]?.GetValue<string>() ?? "test";
+        var policy = c!["configuration"]?.GetValue<string>() ?? "test";
         var plaintext = c["plaintext"]?.GetValue<string>() ?? "";
 
         if (client == null)
@@ -201,7 +201,7 @@ JsonNode RunSdk(JsonNode input)
 
 string GetEngine(JsonNode input, string policyName)
 {
-    try { return input["config"]!["policies"]![policyName]!["engine"]!.GetValue<string>(); }
+    try { return input["config"]!["configurations"]![policyName]!["engine"]!.GetValue<string>(); }
     catch { return "ff1"; }
 }
 
@@ -209,7 +209,7 @@ bool IsTagEnabled(JsonNode input, string policyName)
 {
     try
     {
-        var te = input["config"]!["policies"]![policyName]!["tag_enabled"];
+        var te = input["config"]!["configurations"]![policyName]!["header_enabled"];
         return te == null || te.GetValue<bool>();
     }
     catch { return true; }

@@ -133,7 +133,7 @@ fn run_sdk(input: &Value) -> Value {
     };
 
     for c in cases {
-        let policy = c["policy"].as_str().unwrap_or("test");
+        let policy = c["configuration"].as_str().unwrap_or("test");
         let plaintext = c["plaintext"].as_str().unwrap_or("");
 
         let mut r = c.clone();
@@ -225,20 +225,20 @@ fn run_sdk(input: &Value) -> Value {
 }
 
 fn build_client(config: &Value) -> Result<Client, String> {
-    let policies_val = &config["policies"];
+    let policies_val = &config["configurations"];
     let keys_val = &config["keys"];
 
     let mut policies = HashMap::new();
     if let Some(obj) = policies_val.as_object() {
         for (name, p) in obj {
-            let tag_enabled = p.get("tag_enabled").and_then(|v| v.as_bool()).unwrap_or(true);
+            let tag_enabled = p.get("header_enabled").and_then(|v| v.as_bool()).unwrap_or(true);
             policies.insert(name.clone(), PolicyEntry {
                 engine: p["engine"].as_str().unwrap_or("ff1").to_string(),
                 alphabet: p.get("alphabet").and_then(|v| v.as_str()).map(|s| s.to_string()),
                 key_ref: p.get("key_ref").and_then(|v| v.as_str()).map(|s| s.to_string()),
-                tag: p.get("tag").and_then(|v| v.as_str()).map(|s| s.to_string()),
+                tag: p.get("header").and_then(|v| v.as_str()).map(|s| s.to_string()),
                 tag_enabled,
-                tag_length: p.get("tag_length").and_then(|v| v.as_u64()).unwrap_or(3) as usize,
+                tag_length: p.get("header_length").and_then(|v| v.as_u64()).unwrap_or(3) as usize,
                 mode: p.get("mode").and_then(|v| v.as_str()).map(|s| s.to_string()),
                 pattern: p.get("pattern").and_then(|v| v.as_str()).map(|s| s.to_string()),
                 algorithm: p.get("algorithm").and_then(|v| v.as_str()).map(|s| s.to_string()),
@@ -267,14 +267,14 @@ fn build_client(config: &Value) -> Result<Client, String> {
 }
 
 fn get_engine_from_config(input: &Value, policy_name: &str) -> String {
-    input["config"]["policies"][policy_name]["engine"]
+    input["config"]["configurations"][policy_name]["engine"]
         .as_str()
         .unwrap_or("ff1")
         .to_string()
 }
 
 fn is_tag_enabled(input: &Value, policy_name: &str) -> bool {
-    input["config"]["policies"][policy_name]["tag_enabled"]
+    input["config"]["configurations"][policy_name]["header_enabled"]
         .as_bool()
         .unwrap_or(true)
 }

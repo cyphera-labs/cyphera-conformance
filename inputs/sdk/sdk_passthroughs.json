@@ -1,16 +1,16 @@
 {
   "note": "Passthrough character tests. Non-alphabet chars must survive protect/access round-trip in exact original positions.",
   "config": {
-    "policies": {
+    "configurations": {
       "ssn": {
         "engine": "ff1",
         "key_ref": "test-key",
-        "tag": "T01"
+        "header": "T01"
       },
       "ssn_digits": {
         "engine": "ff1",
         "alphabet": "digits",
-        "tag_enabled": false,
+        "header_enabled": false,
         "key_ref": "test-key"
       }
     },
@@ -22,54 +22,54 @@
   },
   "cases": [
     {
-      "policy": "ssn",
+      "configuration": "ssn",
       "plaintext": "123-45-6789",
       "note": "SSN format — dashes"
     },
     {
-      "policy": "ssn",
+      "configuration": "ssn",
       "plaintext": "123-456-7890",
       "note": "phone format — dashes"
     },
     {
-      "policy": "ssn",
+      "configuration": "ssn",
       "plaintext": "(123) 456-7890",
       "note": "phone with parens and space"
     },
     {
-      "policy": "ssn",
+      "configuration": "ssn",
       "plaintext": "1234 5678 9012 3456",
       "note": "card format — spaces"
     },
     {
-      "policy": "ssn",
+      "configuration": "ssn",
       "plaintext": "12.34.56.78",
       "note": "dots as passthrough"
     },
     {
-      "policy": "ssn",
+      "configuration": "ssn",
       "plaintext": "12/34/5678",
       "note": "date format — slashes"
     },
     {
-      "policy": "ssn",
+      "configuration": "ssn",
       "plaintext": "-123456789",
       "note": "leading passthrough"
     },
     {
-      "policy": "ssn",
+      "configuration": "ssn",
       "plaintext": "123456789-",
       "note": "trailing passthrough"
     },
     {
-      "policy": "ssn",
+      "configuration": "ssn",
       "plaintext": "--123--456--",
       "note": "consecutive passthroughs"
     },
     {
-      "policy": "ssn_digits",
+      "configuration": "ssn_digits",
       "plaintext": "123-45-6789",
-      "note": "untagged with passthroughs"
+      "note": "no-header with passthroughs"
     }
   ]
 }

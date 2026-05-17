@@ -100,7 +100,7 @@ function runSdk(input) {
   }
 
   const results = input.cases.map(c => {
-    const policy = c.policy || "test";
+    const policy = c.configuration || "test";
     const plaintext = c.plaintext || "";
     const r = { ...c };
 
@@ -159,7 +159,7 @@ function runSdk(input) {
 
 function getEngine(input, policyName) {
   try {
-    return input.config.policies[policyName].engine || "ff1";
+    return input.config.configurations[policyName].engine || "ff1";
   } catch {
     return "ff1";
   }
@@ -167,7 +167,7 @@ function getEngine(input, policyName) {
 
 function isTagEnabled(input, policyName) {
   try {
-    const te = input.config.policies[policyName].tag_enabled;
+    const te = input.config.configurations[policyName].header_enabled;
     return te !== false;
   } catch {
     return true;

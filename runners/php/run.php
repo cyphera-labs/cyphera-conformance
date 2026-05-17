@@ -115,7 +115,7 @@ function runSdk(array $input): array
 
     $results = [];
     foreach ($input['cases'] as $c) {
-        $policy = $c['policy'] ?? 'test';
+        $policy = $c['configuration'] ?? 'test';
         $plaintext = $c['plaintext'] ?? '';
         $r = $c;
 
@@ -175,11 +175,11 @@ function runSdk(array $input): array
 
 function getEngine(array $input, string $policy): string
 {
-    return $input['config']['policies'][$policy]['engine'] ?? 'ff1';
+    return $input['config']['configurations'][$policy]['engine'] ?? 'ff1';
 }
 
 function isTagEnabled(array $input, string $policy): bool
 {
-    $te = $input['config']['policies'][$policy]['tag_enabled'] ?? null;
+    $te = $input['config']['configurations'][$policy]['header_enabled'] ?? null;
     return $te !== false;
 }

@@ -14,7 +14,7 @@ Cross-language conformance test suite for Cyphera SDKs. Verifies that all implem
 - Edge cases and key size variations
 
 **SDK tests** — full protect/access behavior:
-- Tagged protect + tag-based access (roundtrip)
+- DPH-prefixed protect + header-based access (roundtrip)
 - Passthrough preservation (dashes, spaces, unicode)
 - Mask engine (last4, first1, full)
 - Hash engine (HMAC-SHA256)

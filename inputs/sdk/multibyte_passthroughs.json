@@ -1,11 +1,11 @@
 {
   "note": "Multi-byte UTF-8 characters as passthroughs via SDK protect/access.",
   "config": {
-    "policies": {
+    "configurations": {
       "test": {
         "engine": "ff1",
         "key_ref": "test-key",
-        "tag": "T04"
+        "header": "T04"
       }
     },
     "keys": {
@@ -16,52 +16,52 @@
   },
   "cases": [
     {
-      "policy": "test",
+      "configuration": "test",
       "plaintext": "田中abc12345",
       "note": "kanji passthrough, alphanumeric encrypted"
     },
     {
-      "policy": "test",
+      "configuration": "test",
       "plaintext": "abc東京def456",
       "note": "kanji in middle"
     },
     {
-      "policy": "test",
+      "configuration": "test",
       "plaintext": "Москва123456",
       "note": "Cyrillic passthrough"
     },
     {
-      "policy": "test",
+      "configuration": "test",
       "plaintext": "مرحبا12345abc",
       "note": "Arabic passthrough"
     },
     {
-      "policy": "test",
+      "configuration": "test",
       "plaintext": "สวัสดี9876abc",
       "note": "Thai passthrough"
     },
     {
-      "policy": "test",
+      "configuration": "test",
       "plaintext": "abc😀def123",
       "note": "emoji passthrough"
     },
     {
-      "policy": "test",
+      "configuration": "test",
       "plaintext": "test🔐secure1",
       "note": "lock emoji passthrough"
     },
     {
-      "policy": "test",
+      "configuration": "test",
       "plaintext": "abc🇺🇸def123",
       "note": "flag emoji (multi-codepoint) passthrough"
     },
     {
-      "policy": "test",
+      "configuration": "test",
       "plaintext": "한국어abc123",
       "note": "Korean hangul passthrough"
     },
     {
-      "policy": "test",
+      "configuration": "test",
       "plaintext": "हिन्दी999abc",
       "note": "Devanagari passthrough"
     }

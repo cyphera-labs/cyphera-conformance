@@ -129,7 +129,7 @@ func runSdk(_ input: [String: Any]) -> [String: Any] {
     }
 
     let results: [[String: Any]] = cases.map { c in
-        let policy = c["policy"] as? String ?? "test"
+        let policy = c["configuration"] as? String ?? "test"
         let plaintext = c["plaintext"] as? String ?? ""
         var r = c
 
@@ -191,7 +191,7 @@ func runSdk(_ input: [String: Any]) -> [String: Any] {
 
 func getEngine(_ input: [String: Any], policy: String) -> String {
     if let config = input["config"] as? [String: Any],
-       let policies = config["policies"] as? [String: Any],
+       let policies = config["configurations"] as? [String: Any],
        let pol = policies[policy] as? [String: Any],
        let engine = pol["engine"] as? String {
         return engine
@@ -201,9 +201,9 @@ func getEngine(_ input: [String: Any], policy: String) -> String {
 
 func isTagEnabled(_ input: [String: Any], policy: String) -> Bool {
     if let config = input["config"] as? [String: Any],
-       let policies = config["policies"] as? [String: Any],
+       let policies = config["configurations"] as? [String: Any],
        let pol = policies[policy] as? [String: Any],
-       let te = pol["tag_enabled"] as? Bool {
+       let te = pol["header_enabled"] as? Bool {
         return te
     }
     return true

@@ -1,28 +1,28 @@
 {
-  "note": "SDK-level protect/access tests. These test the full stack: policy lookup, tag generation, passthrough handling, engine dispatch.",
+  "note": "SDK-level protect/access tests. These test the full stack: configuration lookup, DPH (header) generation, passthrough handling, engine dispatch.",
   "config": {
-    "policies": {
+    "configurations": {
       "ssn": {
         "engine": "ff1",
         "key_ref": "test-key",
-        "tag": "T01"
+        "header": "T01"
       },
       "ssn_digits": {
         "engine": "ff1",
         "alphabet": "digits",
-        "tag_enabled": false,
+        "header_enabled": false,
         "key_ref": "test-key"
       },
       "cc": {
         "engine": "ff1",
         "key_ref": "test-key",
-        "tag": "T02"
+        "header": "T02"
       },
       "name_lower": {
         "engine": "ff1",
         "alphabet": "alpha_lower",
         "key_ref": "test-key",
-        "tag": "T03"
+        "header": "T03"
       }
     },
     "keys": {
@@ -33,52 +33,52 @@
   },
   "cases": [
     {
-      "policy": "ssn",
+      "configuration": "ssn",
       "plaintext": "123456789",
-      "note": "basic tagged alphanumeric"
+      "note": "basic DPH-prefixed alphanumeric"
     },
     {
-      "policy": "ssn",
+      "configuration": "ssn",
       "plaintext": "987654321",
-      "note": "different input same policy"
+      "note": "different input same configuration"
     },
     {
-      "policy": "ssn",
+      "configuration": "ssn",
       "plaintext": "000000000",
       "note": "all zeros"
     },
     {
-      "policy": "ssn",
+      "configuration": "ssn",
       "plaintext": "999999999",
       "note": "all nines"
     },
     {
-      "policy": "ssn",
+      "configuration": "ssn",
       "plaintext": "111111111",
       "note": "repeating digit"
     },
     {
-      "policy": "ssn_digits",
+      "configuration": "ssn_digits",
       "plaintext": "123456789",
-      "note": "untagged digits — same length"
+      "note": "no-header digits — same length"
     },
     {
-      "policy": "ssn_digits",
+      "configuration": "ssn_digits",
       "plaintext": "987654321",
-      "note": "untagged digits — different input"
+      "note": "no-header digits — different input"
     },
     {
-      "policy": "cc",
+      "configuration": "cc",
       "plaintext": "4111111111111111",
       "note": "credit card length"
     },
     {
-      "policy": "name_lower",
+      "configuration": "name_lower",
       "plaintext": "johnsmith",
       "note": "alpha lower"
     },
     {
-      "policy": "name_lower",
+      "configuration": "name_lower",
       "plaintext": "abcdefghij",
       "note": "alpha lower sequential"
     }

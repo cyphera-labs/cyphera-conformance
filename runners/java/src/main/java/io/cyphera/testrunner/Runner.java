@@ -133,7 +133,7 @@ public class Runner {
             JsonObject c = el.getAsJsonObject();
             JsonObject r = c.deepCopy();
 
-            String policy = c.has("policy") ? c.get("policy").getAsString() : null;
+            String policy = c.has("configuration") ? c.get("configuration").getAsString() : null;
             String plaintext = c.get("plaintext").getAsString();
 
             try {
@@ -203,7 +203,7 @@ public class Runner {
     static String getEngineFromConfig(JsonObject input, String policyName) {
         try {
             return input.getAsJsonObject("config")
-                        .getAsJsonObject("policies")
+                        .getAsJsonObject("configurations")
                         .getAsJsonObject(policyName)
                         .get("engine").getAsString();
         } catch (Exception e) {
@@ -214,10 +214,10 @@ public class Runner {
     static boolean isTagEnabled(JsonObject input, String policyName) {
         try {
             JsonObject policy = input.getAsJsonObject("config")
-                                     .getAsJsonObject("policies")
+                                     .getAsJsonObject("configurations")
                                      .getAsJsonObject(policyName);
-            if (policy.has("tag_enabled")) {
-                return policy.get("tag_enabled").getAsBoolean();
+            if (policy.has("header_enabled")) {
+                return policy.get("header_enabled").getAsBoolean();
             }
             return true; // default
         } catch (Exception e) {
