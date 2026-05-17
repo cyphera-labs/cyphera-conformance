@@ -162,21 +162,27 @@ JsonNode RunSdk(JsonNode input)
             {
                 if (tagEnabled)
                 {
+                    // Headered config: header-based access only. 2-arg access MUST error.
                     var accessed = client.Access(protected_);
                     r["accessed"] = accessed;
                     r["roundtrip"] = accessed == plaintext;
+                    try
+                    {
+                        client.Access(protected_, policy);
+                        r["explicit_on_headered_errored"] = false; // bug: did not error
+                    }
+                    catch
+                    {
+                        r["explicit_on_headered_errored"] = true; // expected
+                    }
                 }
                 else
                 {
+                    // Headerless config: 2-arg explicit access only.
                     var accessed = client.Access(protected_, policy);
                     r["accessed"] = accessed;
                     r["roundtrip"] = accessed == plaintext;
                 }
-
-                // Also test explicit access
-                var accessedExplicit = client.Access(protected_, policy);
-                r["accessed_explicit"] = accessedExplicit;
-                r["roundtrip_explicit"] = accessedExplicit == plaintext;
                 r["error"] = null;
             }
         }

@@ -130,19 +130,22 @@ function runSdk(input) {
         const tagEnabled = isTagEnabled(input, policy);
 
         if (tagEnabled) {
+          // Headered config: header-based access only. 2-arg access MUST error.
           const accessed = client.access(protected_);
           r.accessed = accessed;
           r.roundtrip = accessed === plaintext;
+          try {
+            client.access(protected_, policy);
+            r.explicit_on_headered_errored = false; // bug: did not error
+          } catch (_) {
+            r.explicit_on_headered_errored = true; // expected
+          }
         } else {
+          // Headerless config: 2-arg explicit access only.
           const accessed = client.access(protected_, policy);
           r.accessed = accessed;
           r.roundtrip = accessed === plaintext;
         }
-
-        // Also test explicit
-        const accessedExplicit = client.access(protected_, policy);
-        r.accessed_explicit = accessedExplicit;
-        r.roundtrip_explicit = accessedExplicit === plaintext;
         r.error = null;
       }
     } catch (e) {

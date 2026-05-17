@@ -146,16 +146,22 @@ function runSdk(array $input): array
                 $tagEnabled = isTagEnabled($input, $policy);
 
                 if ($tagEnabled) {
+                    // Headered config: header-based access only. 2-arg access MUST error.
                     $accessed = $client->access($protected);
+                    $r['accessed'] = $accessed;
+                    $r['roundtrip'] = $accessed === $plaintext;
+                    try {
+                        $client->access($protected, $policy);
+                        $r['explicit_on_headered_errored'] = false; // bug: did not error
+                    } catch (\Throwable $_) {
+                        $r['explicit_on_headered_errored'] = true; // expected
+                    }
                 } else {
+                    // Headerless config: 2-arg explicit access only.
                     $accessed = $client->access($protected, $policy);
+                    $r['accessed'] = $accessed;
+                    $r['roundtrip'] = $accessed === $plaintext;
                 }
-                $r['accessed'] = $accessed;
-                $r['roundtrip'] = $accessed === $plaintext;
-
-                $accessedExplicit = $client->access($protected, $policy);
-                $r['accessed_explicit'] = $accessedExplicit;
-                $r['roundtrip_explicit'] = $accessedExplicit === $plaintext;
                 $r['error'] = null;
             }
         } catch (\Throwable $e) {

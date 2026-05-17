@@ -89,15 +89,21 @@ def run_sdk(data):
                 r["error"] = None
             else:
                 if tag_enabled:
+                    # Headered config: header-based access is the only valid path.
+                    # 2-arg access(value, name) MUST error per spec.
                     accessed = client.access(protected)
+                    r["accessed"] = accessed
+                    r["roundtrip"] = accessed == pt
+                    try:
+                        client.access(protected, policy)
+                        r["explicit_on_headered_errored"] = False  # bug: did not error
+                    except Exception:
+                        r["explicit_on_headered_errored"] = True   # expected
                 else:
+                    # Headerless config: 2-arg explicit access is the only valid path.
                     accessed = client.access(protected, policy)
-                r["accessed"] = accessed
-                r["roundtrip"] = accessed == pt
-
-                accessed_explicit = client.access(protected, policy)
-                r["accessed_explicit"] = accessed_explicit
-                r["roundtrip_explicit"] = accessed_explicit == pt
+                    r["accessed"] = accessed
+                    r["roundtrip"] = accessed == pt
                 r["error"] = None
         except Exception as e:
             r["protected"] = None

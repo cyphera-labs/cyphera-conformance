@@ -164,21 +164,22 @@ public class Runner {
                     boolean tagEnabled = isTagEnabled(input, policy);
 
                     if (tagEnabled) {
-                        // Tag-based access (no policy name needed)
+                        // Headered config: header-based access only. 2-arg access MUST error.
                         String accessed = client.access(protectedVal);
                         r.addProperty("accessed", accessed);
                         r.addProperty("roundtrip", accessed.equals(plaintext));
+                        try {
+                            client.access(protectedVal, policy);
+                            r.addProperty("explicit_on_headered_errored", false); // bug: did not error
+                        } catch (Exception _e) {
+                            r.addProperty("explicit_on_headered_errored", true);  // expected
+                        }
                     } else {
-                        // Explicit policy access (untagged)
+                        // Headerless config: 2-arg explicit access only.
                         String accessed = client.access(protectedVal, policy);
                         r.addProperty("accessed", accessed);
                         r.addProperty("roundtrip", accessed.equals(plaintext));
                     }
-
-                    // Always also test explicit policy access
-                    String accessedExplicit = client.access(protectedVal, policy);
-                    r.addProperty("accessed_explicit", accessedExplicit);
-                    r.addProperty("roundtrip_explicit", accessedExplicit.equals(plaintext));
 
                     r.addProperty("error", (String) null);
                 }

@@ -159,18 +159,22 @@ func runSdk(_ input: [String: Any]) -> [String: Any] {
                 let tagEnabled = isTagEnabled(input, policy: policy)
 
                 if tagEnabled {
+                    // Headered config: header-based access only. 2-arg access MUST error.
                     let accessed = try client.access(protected)
                     r["accessed"] = accessed
                     r["roundtrip"] = accessed == plaintext
+                    do {
+                        _ = try client.access(protected, policy: policy)
+                        r["explicit_on_headered_errored"] = false  // bug: did not error
+                    } catch {
+                        r["explicit_on_headered_errored"] = true   // expected
+                    }
                 } else {
+                    // Headerless config: 2-arg explicit access only.
                     let accessed = try client.access(protected, policy: policy)
                     r["accessed"] = accessed
                     r["roundtrip"] = accessed == plaintext
                 }
-
-                let accessedExplicit = try client.access(protected, policy: policy)
-                r["accessed_explicit"] = accessedExplicit
-                r["roundtrip_explicit"] = accessedExplicit == plaintext
                 r["error"] = NSNull()
             }
         } catch {

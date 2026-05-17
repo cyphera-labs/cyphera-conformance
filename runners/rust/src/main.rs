@@ -3,7 +3,7 @@ use cyphera::alphabet::Alphabet;
 use cyphera::ff1::core::FF1;
 use cyphera::ff3::core::FF3;
 use cyphera::keys::{KeyRecord, KeyStatus, MemoryProvider};
-use cyphera::policy::{PolicyEntry, PolicyFile};
+use cyphera::configuration::{Configuration, ConfigurationFile};
 use serde_json::{json, Value};
 use std::collections::HashMap;
 use std::fs;
@@ -165,7 +165,8 @@ fn run_sdk(input: &Value) -> Value {
                             let tag_enabled = is_tag_enabled(input, policy);
 
                             if tag_enabled {
-                                match cl.access_by_tag(&result.output) {
+                                // Headered config: header-based access only. 2-arg access MUST error.
+                                match cl.access_by_header(&result.output) {
                                     Ok(accessed) => {
                                         r["accessed"] = json!(accessed.output);
                                         r["roundtrip"] = json!(accessed.output == plaintext);
@@ -175,7 +176,12 @@ fn run_sdk(input: &Value) -> Value {
                                         r["error"] = json!(format!("{}", e));
                                     }
                                 }
+                                match cl.access(policy, &result.output) {
+                                    Ok(_) => r["explicit_on_headered_errored"] = json!(false),
+                                    Err(_) => r["explicit_on_headered_errored"] = json!(true),
+                                }
                             } else {
+                                // Headerless config: 2-arg explicit access only.
                                 match cl.access(policy, &result.output) {
                                     Ok(accessed) => {
                                         r["accessed"] = json!(accessed.output);
@@ -186,15 +192,6 @@ fn run_sdk(input: &Value) -> Value {
                                         r["error"] = json!(format!("{}", e));
                                     }
                                 }
-                            }
-
-                            // Also test explicit access
-                            match cl.access(policy, &result.output) {
-                                Ok(accessed) => {
-                                    r["accessed_explicit"] = json!(accessed.output);
-                                    r["roundtrip_explicit"] = json!(accessed.output == plaintext);
-                                }
-                                Err(_) => {}
                             }
 
                             if !r.as_object().unwrap().contains_key("error") || r["error"].is_null() {
@@ -225,20 +222,20 @@ fn run_sdk(input: &Value) -> Value {
 }
 
 fn build_client(config: &Value) -> Result<Client, String> {
-    let policies_val = &config["configurations"];
+    let configurations_val = &config["configurations"];
     let keys_val = &config["keys"];
 
-    let mut policies = HashMap::new();
-    if let Some(obj) = policies_val.as_object() {
+    let mut configurations = HashMap::new();
+    if let Some(obj) = configurations_val.as_object() {
         for (name, p) in obj {
-            let tag_enabled = p.get("header_enabled").and_then(|v| v.as_bool()).unwrap_or(true);
-            policies.insert(name.clone(), PolicyEntry {
+            let header_enabled = p.get("header_enabled").and_then(|v| v.as_bool()).unwrap_or(true);
+            configurations.insert(name.clone(), Configuration {
                 engine: p["engine"].as_str().unwrap_or("ff1").to_string(),
                 alphabet: p.get("alphabet").and_then(|v| v.as_str()).map(|s| s.to_string()),
                 key_ref: p.get("key_ref").and_then(|v| v.as_str()).map(|s| s.to_string()),
-                tag: p.get("header").and_then(|v| v.as_str()).map(|s| s.to_string()),
-                tag_enabled,
-                tag_length: p.get("header_length").and_then(|v| v.as_u64()).unwrap_or(3) as usize,
+                header: p.get("header").and_then(|v| v.as_str()).map(|s| s.to_string()),
+                header_enabled,
+                header_length: p.get("header_length").and_then(|v| v.as_u64()).unwrap_or(3) as usize,
                 mode: p.get("mode").and_then(|v| v.as_str()).map(|s| s.to_string()),
                 pattern: p.get("pattern").and_then(|v| v.as_str()).map(|s| s.to_string()),
                 algorithm: p.get("algorithm").and_then(|v| v.as_str()).map(|s| s.to_string()),
@@ -262,8 +259,8 @@ fn build_client(config: &Value) -> Result<Client, String> {
     }
 
     let provider = MemoryProvider::new(key_records);
-    let pf = PolicyFile { policies };
-    Client::from_policy(pf, Box::new(provider)).map_err(|e| format!("{}", e))
+    let cf = ConfigurationFile { configurations };
+    Client::from_configuration(cf, Box::new(provider)).map_err(|e| format!("{}", e))
 }
 
 fn get_engine_from_config(input: &Value, policy_name: &str) -> String {
