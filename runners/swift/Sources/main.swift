@@ -131,15 +131,72 @@ func runSdk(_ input: [String: Any]) -> [String: Any] {
     let results: [[String: Any]] = cases.map { c in
         let policy = c["configuration"] as? String ?? "test"
         let plaintext = c["plaintext"] as? String ?? ""
+        let forceMethod = c["force_method"] as? String
+        let expectError = c["expect_error"] as? Bool ?? false
+        let errorMustContain = c["error_must_contain"] as? String
+        let inputOverride = c["input_override"] as? String
         var r = c
 
         guard let client = client, clientError == nil else {
             r["error"] = clientError ?? "no config provided"
+            r["expect_error_satisfied"] = expectError
             return r
         }
 
+        // ─── force_method dispatch ───
+        if let method = forceMethod {
+            var errMsg: String? = nil
+            do {
+                switch method {
+                case "protect_only":
+                    let p = try client.protect(plaintext, configuration: policy)
+                    r["protected"] = p
+                    if let expected = c["expected"] as? String { r["matches_expected"] = p == expected }
+                case "protect_only_deterministic":
+                    let p1 = try client.protect(plaintext, configuration: policy)
+                    let p2 = try client.protect(plaintext, configuration: policy)
+                    r["protected"] = p1
+                    r["deterministic"] = p1 == p2
+                case "access":
+                    let p = try client.protect(plaintext, configuration: policy)
+                    r["protected"] = p
+                    let a = try client.access(p, configuration: policy)
+                    r["accessed"] = a
+                    r["roundtrip"] = a == plaintext
+                case "access_by_header":
+                    let p = try client.protect(plaintext, configuration: policy)
+                    r["protected"] = p
+                    let a = try client.accessByHeader(p)
+                    r["accessed"] = a
+                    r["roundtrip"] = a == plaintext
+                case "access_by_header_unknown_prefix":
+                    _ = try client.accessByHeader(inputOverride ?? "ZZZ12345")
+                case "access_on_mask_output":
+                    let m = try client.protect(plaintext, configuration: policy)
+                    r["protected"] = m
+                    _ = try client.access(m, configuration: policy)
+                case "access_on_hash_output":
+                    let h = try client.protect(plaintext, configuration: policy)
+                    r["protected"] = h
+                    _ = try client.access(h, configuration: policy)
+                default:
+                    errMsg = "unknown force_method: \(method)"
+                }
+            } catch {
+                errMsg = "\(error)"
+            }
+            r["error"] = errMsg ?? NSNull()
+            let errored = errMsg != nil
+            r["expect_error_satisfied"] = errored == expectError
+            if expectError, let mustContain = errorMustContain, errored {
+                r["error_message_satisfied"] = errMsg!.lowercased().contains(mustContain.lowercased())
+            }
+            return r
+        }
+
+        // ─── default dispatch ───
         do {
-            let protected = try client.protect(plaintext, policy: policy)
+            let protected = try client.protect(plaintext, configuration: policy)
             r["protected"] = protected
 
             let engineType = getEngine(input, policy: policy)
@@ -151,7 +208,7 @@ func runSdk(_ input: [String: Any]) -> [String: Any] {
                 r["reversible"] = false
                 r["error"] = NSNull()
             } else if engineType == "hash" {
-                let second = try client.protect(plaintext, policy: policy)
+                let second = try client.protect(plaintext, configuration: policy)
                 r["deterministic"] = protected == second
                 r["reversible"] = false
                 r["error"] = NSNull()
@@ -159,18 +216,16 @@ func runSdk(_ input: [String: Any]) -> [String: Any] {
                 let tagEnabled = isTagEnabled(input, policy: policy)
 
                 if tagEnabled {
-                    // Headered config: header-based access only. 2-arg access MUST error.
                     let accessed = try client.accessByHeader(protected)
                     r["accessed"] = accessed
                     r["roundtrip"] = accessed == plaintext
                     do {
                         _ = try client.access(protected, configuration: policy)
-                        r["explicit_on_headered_errored"] = false  // bug: did not error
+                        r["explicit_on_headered_errored"] = false
                     } catch {
-                        r["explicit_on_headered_errored"] = true   // expected
+                        r["explicit_on_headered_errored"] = true
                     }
                 } else {
-                    // Headerless config: 2-arg explicit access only.
                     let accessed = try client.access(protected, configuration: policy)
                     r["accessed"] = accessed
                     r["roundtrip"] = accessed == plaintext
