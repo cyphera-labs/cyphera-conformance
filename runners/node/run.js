@@ -102,13 +102,69 @@ function runSdk(input) {
   const results = input.cases.map(c => {
     const policy = c.configuration || "test";
     const plaintext = c.plaintext || "";
+    const forceMethod = c.force_method;
+    const expectError = c.expect_error || false;
+    const errorMustContain = c.error_must_contain;
+    const inputOverride = c.input_override;
     const r = { ...c };
 
     if (!client || client._error) {
       r.error = client ? client._error : "no config provided";
+      r.expect_error_satisfied = expectError && r.error;
       return r;
     }
 
+    // ─── force_method dispatch ───
+    if (forceMethod) {
+      r.error = null;
+      try {
+        if (forceMethod === "protect_only") {
+          const p = client.protect(plaintext, policy);
+          r.protected = p;
+          if (c.expected) r.matches_expected = p === c.expected;
+        } else if (forceMethod === "protect_only_deterministic") {
+          const p1 = client.protect(plaintext, policy);
+          const p2 = client.protect(plaintext, policy);
+          r.protected = p1;
+          r.deterministic = p1 === p2;
+        } else if (forceMethod === "access") {
+          const p = client.protect(plaintext, policy);
+          r.protected = p;
+          const a = client.access(p, policy);
+          r.accessed = a;
+          r.roundtrip = a === plaintext;
+        } else if (forceMethod === "access_by_header") {
+          const p = client.protect(plaintext, policy);
+          r.protected = p;
+          const a = client.accessByHeader(p);
+          r.accessed = a;
+          r.roundtrip = a === plaintext;
+        } else if (forceMethod === "access_by_header_unknown_prefix") {
+          client.accessByHeader(inputOverride || "ZZZ12345");
+        } else if (forceMethod === "access_on_mask_output") {
+          const m = client.protect(plaintext, policy);
+          r.protected = m;
+          client.access(m, policy);
+        } else if (forceMethod === "access_on_hash_output") {
+          const h = client.protect(plaintext, policy);
+          r.protected = h;
+          client.access(h, policy);
+        } else {
+          r.error = `unknown force_method: ${forceMethod}`;
+        }
+      } catch (e) {
+        r.error = e.message;
+      }
+
+      const errored = r.error !== null && r.error !== undefined;
+      r.expect_error_satisfied = errored === expectError;
+      if (expectError && errorMustContain && errored) {
+        r.error_message_satisfied = r.error.toLowerCase().includes(errorMustContain.toLowerCase());
+      }
+      return r;
+    }
+
+    // ─── default dispatch ───
     try {
       const protected_ = client.protect(plaintext, policy);
       r.protected = protected_;
@@ -130,18 +186,16 @@ function runSdk(input) {
         const tagEnabled = isTagEnabled(input, policy);
 
         if (tagEnabled) {
-          // Headered config: header-based access only. 2-arg access MUST error.
           const accessed = client.accessByHeader(protected_);
           r.accessed = accessed;
           r.roundtrip = accessed === plaintext;
           try {
             client.access(protected_, policy);
-            r.explicit_on_headered_errored = false; // bug: did not error
+            r.explicit_on_headered_errored = false;
           } catch (_) {
-            r.explicit_on_headered_errored = true; // expected
+            r.explicit_on_headered_errored = true;
           }
         } else {
-          // Headerless config: 2-arg explicit access only.
           const accessed = client.access(protected_, policy);
           r.accessed = accessed;
           r.roundtrip = accessed === plaintext;
@@ -157,7 +211,7 @@ function runSdk(input) {
     return r;
   });
 
-  return { ...input, results, runner: "node", sdk_version: "0.0.1-alpha.1" };
+  return { ...input, results, runner: "node", sdk_version: "0.0.1-alpha.4" };
 }
 
 function getEngine(input, policyName) {
