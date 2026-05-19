@@ -1,0 +1,35 @@
+{
+  "note": "Mask engine pattern matrix — exhaustively tests every documented mask pattern. Mask is deterministic and non-reversible: comparison phase asserts every SDK produced identical `protected` values for each case.",
+  "config": {
+    "configurations": {
+      "mask_last4":  { "engine": "mask", "pattern": "last4",  "header_enabled": false },
+      "mask_last2":  { "engine": "mask", "pattern": "last2",  "header_enabled": false },
+      "mask_first1": { "engine": "mask", "pattern": "first1", "header_enabled": false },
+      "mask_first3": { "engine": "mask", "pattern": "first3", "header_enabled": false },
+      "mask_full":   { "engine": "mask", "pattern": "full",   "header_enabled": false }
+    },
+    "keys": {}
+  },
+  "cases": [
+    { "configuration": "mask_last4",  "plaintext": "123-45-6789",       "force_method": "protect_only", "expected": "*******6789",        "note": "last4 — SSN with dashes" },
+    { "configuration": "mask_last4",  "plaintext": "4111111111111111",  "force_method": "protect_only", "expected": "************1111",   "note": "last4 — 16-digit credit card" },
+    { "configuration": "mask_last4",  "plaintext": "5500000000000004",  "force_method": "protect_only", "expected": "************0004",   "note": "last4 — different credit card" },
+    { "configuration": "mask_last4",  "plaintext": "9876",              "force_method": "protect_only", "expected": "9876",              "note": "last4 — input is exactly 4 chars (passthrough)" },
+    { "configuration": "mask_last4",  "plaintext": "abcdef",            "force_method": "protect_only", "expected": "**cdef",            "note": "last4 — alpha 6-char" },
+    { "configuration": "mask_last4",  "plaintext": "",                  "force_method": "protect_only",                                  "note": "last4 — empty input (behavior may vary)" },
+
+    { "configuration": "mask_last2",  "plaintext": "123-45-6789",       "force_method": "protect_only", "expected": "*********89",       "note": "last2 — SSN" },
+    { "configuration": "mask_last2",  "plaintext": "ab",                "force_method": "protect_only", "expected": "ab",                "note": "last2 — exactly 2 chars" },
+
+    { "configuration": "mask_first1", "plaintext": "Leslie",            "force_method": "protect_only", "expected": "L*****",            "note": "first1 — name" },
+    { "configuration": "mask_first1", "plaintext": "J",                 "force_method": "protect_only", "expected": "J",                 "note": "first1 — single-char input" },
+    { "configuration": "mask_first1", "plaintext": "Anderson-Smith",    "force_method": "protect_only", "expected": "A*************",    "note": "first1 — hyphenated name" },
+
+    { "configuration": "mask_first3", "plaintext": "Cyphera",           "force_method": "protect_only", "expected": "Cyp****",            "note": "first3 — brand name" },
+    { "configuration": "mask_first3", "plaintext": "abcdef",            "force_method": "protect_only", "expected": "abc***",            "note": "first3 — 6 chars" },
+
+    { "configuration": "mask_full",   "plaintext": "secret",            "force_method": "protect_only", "expected": "******",            "note": "full — short string" },
+    { "configuration": "mask_full",   "plaintext": "the quick brown fox", "force_method": "protect_only", "expected": "*******************", "note": "full — long string with spaces" },
+    { "configuration": "mask_full",   "plaintext": "",                  "force_method": "protect_only", "expected": "",                  "note": "full — empty input" }
+  ]
+}

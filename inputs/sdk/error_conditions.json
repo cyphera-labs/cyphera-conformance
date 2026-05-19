@@ -1,106 +1,43 @@
 {
-  "note": "Error condition matrix — every error documented in the spec's Error Behavior table. Each case sets up a scenario expected to fail, and records whether the SDK errored. Comparison phase asserts all SDKs errored on the same cases.",
+  "note": "Error condition matrix — every documented error in the spec's Error Behavior table, plus boundary cases. Each case sets up a scenario expected to fail; the runner records whether the SDK errored and whether the error message matched. Comparison phase asserts all SDKs errored on the same cases. KNOWN DIVERGENCE: NIST FF1 minlen check is currently only enforced by cyphera-java — see operations/todo/ for the tabled design discussion.",
   "config": {
     "configurations": {
-      "ssn": {
-        "engine": "ff1",
-        "key_ref": "test-key",
-        "header": "T01"
-      },
-      "ssn_no_header": {
-        "engine": "ff1",
-        "alphabet": "digits",
-        "header_enabled": false,
-        "key_ref": "test-key"
-      },
-      "missing_key": {
-        "engine": "ff1",
-        "header_enabled": false,
-        "key_ref": "does-not-exist"
-      },
-      "ssn_mask": {
-        "engine": "mask",
-        "pattern": "last4",
-        "header_enabled": false
-      },
-      "ssn_hash": {
-        "engine": "hash",
-        "algorithm": "sha256",
-        "key_ref": "test-key",
-        "header_enabled": false
-      }
+      "ssn":           { "engine": "ff1", "key_ref": "test-key", "header": "T01" },
+      "ssn_no_header": { "engine": "ff1", "alphabet": "digits", "header_enabled": false, "key_ref": "test-key" },
+      "alpha_short":   { "engine": "ff1", "alphabet": "alphanumeric", "header_enabled": false, "key_ref": "test-key" },
+      "missing_key":   { "engine": "ff1", "header_enabled": false, "key_ref": "does-not-exist" },
+      "ssn_mask":      { "engine": "mask", "pattern": "last4", "header_enabled": false },
+      "ssn_hash":      { "engine": "hash", "algorithm": "sha256", "key_ref": "test-key", "header_enabled": false },
+      "ff3_digits_no": { "engine": "ff3", "alphabet": "digits", "header_enabled": false, "key_ref": "test-key" }
     },
     "keys": {
-      "test-key": {
-        "material": "2B7E151628AED2A6ABF7158809CF4F3C"
-      }
+      "test-key": { "material": "2B7E151628AED2A6ABF7158809CF4F3C" }
     }
   },
   "cases": [
-    {
-      "configuration": "nonexistent",
-      "plaintext": "12345",
-      "force_method": "protect_only",
-      "expect_error": true,
-      "error_must_contain": "configuration",
-      "note": "Configuration not found"
-    },
-    {
-      "configuration": "missing_key",
-      "plaintext": "12345",
-      "force_method": "protect_only",
-      "expect_error": true,
-      "error_must_contain": "key",
-      "note": "Key not found"
-    },
-    {
-      "configuration": "ssn",
-      "plaintext": "---",
-      "force_method": "protect_only",
-      "expect_error": true,
-      "error_must_contain": "encryptable",
-      "note": "Zero encryptable characters (all passthroughs)"
-    },
-    {
-      "configuration": "ssn_no_header",
-      "plaintext": "a",
-      "force_method": "protect_only",
-      "expect_error": true,
-      "error_must_contain": "short",
-      "note": "Input below NIST minimum domain size"
-    },
-    {
-      "configuration": "ssn_mask",
-      "plaintext": "123-45-6789",
-      "force_method": "access_on_mask_output",
-      "expect_error": true,
-      "error_must_contain": "reverse",
-      "note": "access() on mask output — not reversible"
-    },
-    {
-      "configuration": "ssn_hash",
-      "plaintext": "123-45-6789",
-      "force_method": "access_on_hash_output",
-      "expect_error": true,
-      "error_must_contain": "reverse",
-      "note": "access() on hash output — not reversible"
-    },
-    {
-      "configuration": "ssn",
-      "plaintext": "123456789",
-      "force_method": "access_by_header_unknown_prefix",
-      "input_override": "ZZZ123456789",
-      "expect_error": true,
-      "error_must_contain": "no matching header",
-      "note": "No matching header in access_by_header()"
-    },
-    {
-      "configuration": "ssn",
-      "plaintext": "123456789",
-      "force_method": "access",
-      "expect_error": true,
-      "error_must_contain": "header_enabled=true",
-      "note": "access(value, name) with header_enabled=true configuration"
-    }
+    { "configuration": "nonexistent",       "plaintext": "12345",  "force_method": "protect_only", "expect_error": true, "error_must_contain": "configuration",      "note": "[Configuration not found] — unknown name on protect" },
+    { "configuration": "nonexistent",       "plaintext": "12345",  "force_method": "access",       "expect_error": true, "error_must_contain": "configuration",      "note": "[Configuration not found] — unknown name on access" },
+    { "configuration": "missing_key",       "plaintext": "123456789", "force_method": "protect_only", "expect_error": true, "error_must_contain": "key",          "note": "[Key not found] — key_ref points to a non-existent key" },
+
+    { "configuration": "ssn",               "plaintext": "---",     "force_method": "protect_only", "expect_error": true, "error_must_contain": "encryptable",      "note": "[Zero encryptable characters] — all dashes (passthrough)" },
+    { "configuration": "ssn",               "plaintext": "",        "force_method": "protect_only", "expect_error": true,                                          "note": "[Empty input]" },
+    { "configuration": "ssn",               "plaintext": "!!!??? ...", "force_method": "protect_only", "expect_error": true, "error_must_contain": "encryptable",   "note": "[Zero encryptable characters] — only punctuation/space" },
+    { "configuration": "ssn_no_header",     "plaintext": "abc",     "force_method": "protect_only", "expect_error": true, "error_must_contain": "encryptable",      "note": "[Zero encryptable characters] — 'abc' is not in 'digits' alphabet" },
+
+    { "configuration": "ssn_no_header",     "plaintext": "123",     "force_method": "protect_only", "expect_error": true, "error_must_contain": "short",            "note": "[NIST FF1 minlen] — 3 chars in digits radix 10: 10^3=1000 < 1,000,000 (java enforces, others lax — known divergence)" },
+    { "configuration": "ssn_no_header",     "plaintext": "12345",   "force_method": "protect_only", "expect_error": true, "error_must_contain": "short",            "note": "[NIST FF1 minlen] — 5 chars digits: 100,000 < 1,000,000" },
+    { "configuration": "alpha_short",       "plaintext": "abc",     "force_method": "protect_only", "expect_error": true, "error_must_contain": "short",            "note": "[NIST FF1 minlen] — 3 chars alphanumeric radix 62: 238,328 < 1,000,000" },
+    { "configuration": "ff3_digits_no",     "plaintext": "12345",   "force_method": "protect_only", "expect_error": true, "error_must_contain": "short",            "note": "[NIST FF3 minlen] — 5 chars digits same threshold" },
+    { "configuration": "ff3_digits_no",     "plaintext": "1",       "force_method": "protect_only", "expect_error": true,                                          "note": "[NIST FF3 minlen + min 2] — single char" },
+
+    { "configuration": "ssn_mask",          "plaintext": "123-45-6789", "force_method": "access_on_mask_output", "expect_error": true, "error_must_contain": "reverse", "note": "[Not reversible] — access on mask output" },
+    { "configuration": "ssn_hash",          "plaintext": "123-45-6789", "force_method": "access_on_hash_output", "expect_error": true, "error_must_contain": "reverse", "note": "[Not reversible] — access on hash output" },
+
+    { "configuration": "ssn",               "plaintext": "123456789", "force_method": "access_by_header_unknown_prefix", "input_override": "ZZZ12345",   "expect_error": true, "error_must_contain": "no matching header", "note": "[No matching header] — access_by_header on garbage prefix" },
+    { "configuration": "ssn",               "plaintext": "123456789", "force_method": "access_by_header_unknown_prefix", "input_override": "",            "expect_error": true, "error_must_contain": "no matching header", "note": "[No matching header] — access_by_header on empty string" },
+    { "configuration": "ssn",               "plaintext": "123456789", "force_method": "access_by_header_unknown_prefix", "input_override": "T01",         "expect_error": true,                                          "note": "[Edge] — input matches header prefix exactly but has no ciphertext after — should error somehow (no encryptable / too short)" },
+
+    { "configuration": "ssn",               "plaintext": "123456789",       "force_method": "access", "expect_error": true, "error_must_contain": "header_enabled=true", "note": "[Explicit access on headered] — Option C error" },
+    { "configuration": "ssn",               "plaintext": "abc-xyz",         "force_method": "access", "expect_error": true, "error_must_contain": "header_enabled=true", "note": "[Explicit access on headered] — different input, same error" }
   ]
 }

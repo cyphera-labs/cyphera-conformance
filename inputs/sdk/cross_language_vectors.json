@@ -1,0 +1,73 @@
+{
+  "note": "Cross-language byte-equivalence vectors. For each case, every SDK MUST produce identical protect() output. The comparison phase asserts byte-equality across all runners — any divergence is a critical cross-language bug. Cases are organized by engine and stressed across alphabets, header configurations, header lengths, and input shapes.",
+  "config": {
+    "configurations": {
+      "ff1_d_h3":      { "engine": "ff1", "alphabet": "digits",       "key_ref": "k1", "header": "D01" },
+      "ff1_d_h2":      { "engine": "ff1", "alphabet": "digits",       "key_ref": "k1", "header": "DX", "header_length": 2 },
+      "ff1_d_h5":      { "engine": "ff1", "alphabet": "digits",       "key_ref": "k1", "header": "DLONG", "header_length": 5 },
+      "ff1_d_no":      { "engine": "ff1", "alphabet": "digits",       "key_ref": "k1", "header_enabled": false },
+      "ff1_al_h3":     { "engine": "ff1", "alphabet": "alpha_lower",  "key_ref": "k1", "header": "L01" },
+      "ff1_au_h3":     { "engine": "ff1", "alphabet": "alpha_upper",  "key_ref": "k1", "header": "U01" },
+      "ff1_a_h3":      { "engine": "ff1", "alphabet": "alpha",        "key_ref": "k1", "header": "A01" },
+      "ff1_an_h3":     { "engine": "ff1", "alphabet": "alphanumeric", "key_ref": "k1", "header": "N01" },
+      "ff1_an_no":     { "engine": "ff1", "alphabet": "alphanumeric", "key_ref": "k1", "header_enabled": false },
+      "ff1_hex":       { "engine": "ff1", "alphabet": "0123456789abcdef", "key_ref": "k1", "header": "HX1" },
+      "ff1_dna":       { "engine": "ff1", "alphabet": "ACGT",         "key_ref": "k1", "header": "DNA" },
+      "ff3_d_h3":      { "engine": "ff3", "alphabet": "digits",       "key_ref": "k1", "header": "F3D" },
+      "ff3_an_h3":     { "engine": "ff3", "alphabet": "alphanumeric", "key_ref": "k1", "header": "F3N" },
+      "ff3_d_no":      { "engine": "ff3", "alphabet": "digits",       "key_ref": "k1", "header_enabled": false },
+      "k192_ff1_d_no": { "engine": "ff1", "alphabet": "digits",       "key_ref": "k192", "header_enabled": false },
+      "k256_ff1_d_no": { "engine": "ff1", "alphabet": "digits",       "key_ref": "k256", "header_enabled": false }
+    },
+    "keys": {
+      "k1":   { "material": "2B7E151628AED2A6ABF7158809CF4F3C" },
+      "k192": { "material": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F" },
+      "k256": { "material": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94" }
+    }
+  },
+  "cases": [
+    { "configuration": "ff1_d_h3", "plaintext": "0123456789", "note": "FF1 digits, 10-char, 3-char header" },
+    { "configuration": "ff1_d_h3", "plaintext": "9999999999", "note": "FF1 digits, all 9s, header" },
+    { "configuration": "ff1_d_h3", "plaintext": "0000000000", "note": "FF1 digits, all 0s, header" },
+    { "configuration": "ff1_d_h3", "plaintext": "1234567890123456", "note": "FF1 digits, 16-char (credit-card length), header" },
+    { "configuration": "ff1_d_h3", "plaintext": "12345-67890",      "note": "FF1 digits with passthroughs" },
+    { "configuration": "ff1_d_h3", "plaintext": "(555) 867-5309",   "note": "FF1 digits, phone with parens and space" },
+    { "configuration": "ff1_d_h2", "plaintext": "0123456789",       "note": "FF1 digits, 2-char header (header_length=2)" },
+    { "configuration": "ff1_d_h5", "plaintext": "0123456789",       "note": "FF1 digits, 5-char header (header_length=5)" },
+    { "configuration": "ff1_d_no", "plaintext": "0123456789",       "note": "FF1 digits, headerless" },
+    { "configuration": "ff1_d_no", "plaintext": "12345",            "note": "FF1 digits, 5-char headerless (below NIST minlen — divergence)" },
+    { "configuration": "ff1_d_no", "plaintext": "123",              "note": "FF1 digits, 3-char headerless (clearly below NIST minlen)" },
+    { "configuration": "ff1_d_no", "plaintext": "0123456789012345678901234567890123456789", "note": "FF1 digits, 40-char large input" },
+
+    { "configuration": "ff1_al_h3", "plaintext": "abcdefghij",  "note": "FF1 alpha_lower, 10-char" },
+    { "configuration": "ff1_al_h3", "plaintext": "thequickbrownfox", "note": "FF1 alpha_lower, 16-char word" },
+    { "configuration": "ff1_au_h3", "plaintext": "ABCDEFGHIJ",  "note": "FF1 alpha_upper, 10-char" },
+    { "configuration": "ff1_a_h3",  "plaintext": "AbCdEfGhIj",  "note": "FF1 alpha (radix 52), mixed case" },
+    { "configuration": "ff1_a_h3",  "plaintext": "CamelCaseInputString", "note": "FF1 alpha, 20-char mixed case" },
+    { "configuration": "ff1_an_h3", "plaintext": "abc123XYZ",   "note": "FF1 alphanumeric, mixed alpha+digits" },
+    { "configuration": "ff1_an_h3", "plaintext": "myEmail@example.com", "note": "FF1 alphanumeric, email-shape with passthroughs" },
+    { "configuration": "ff1_an_no", "plaintext": "abc123XYZ",   "note": "FF1 alphanumeric, headerless" },
+    { "configuration": "ff1_an_no", "plaintext": "abc",         "note": "FF1 alphanumeric, 3-char headerless (below NIST minlen for radix 62)" },
+
+    { "configuration": "ff1_hex", "plaintext": "deadbeef",     "note": "FF1 custom hex alphabet" },
+    { "configuration": "ff1_hex", "plaintext": "cafebabe1234", "note": "FF1 custom hex alphabet, longer" },
+    { "configuration": "ff1_dna", "plaintext": "ACGTACGTACGTACGTACGT", "note": "FF1 custom DNA alphabet (radix 4), 20-char (minimum for radix 4)" },
+
+    { "configuration": "ff3_d_h3",  "plaintext": "0123456789",        "note": "FF3 digits, 10-char" },
+    { "configuration": "ff3_d_h3",  "plaintext": "890121234567890000", "note": "FF3 digits, 18-char (NIST sample length)" },
+    { "configuration": "ff3_an_h3", "plaintext": "abc123XYZ",         "note": "FF3 alphanumeric, mixed" },
+    { "configuration": "ff3_d_no",  "plaintext": "0123456789",        "note": "FF3 digits, headerless" },
+
+    { "configuration": "k192_ff1_d_no", "plaintext": "0123456789", "note": "FF1 digits, 192-bit key" },
+    { "configuration": "k256_ff1_d_no", "plaintext": "0123456789", "note": "FF1 digits, 256-bit key" },
+    { "configuration": "k192_ff1_d_no", "plaintext": "890121234567890000", "note": "FF1 digits, 192-bit key, NIST-length" },
+    { "configuration": "k256_ff1_d_no", "plaintext": "890121234567890000", "note": "FF1 digits, 256-bit key, NIST-length" },
+
+    { "configuration": "ff1_d_h3", "plaintext": "0",                  "force_method": "protect_only", "expect_error": true, "error_must_contain": "short",
+      "note": "Single-char input — below all NIST minlens" },
+    { "configuration": "ff1_d_h3", "plaintext": "",                   "force_method": "protect_only", "expect_error": true,
+      "note": "Empty input" },
+    { "configuration": "ff1_d_h3", "plaintext": "---",                "force_method": "protect_only", "expect_error": true, "error_must_contain": "encryptable",
+      "note": "All passthroughs, zero encryptable" }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "note": "Hash engine algorithm matrix — every algorithm × keyed/plain variant. Hash is deterministic and non-reversible. Comparison phase asserts identical `protected` (hex digest) output across all SDKs for each case.",
+  "config": {
+    "configurations": {
+      "h_sha256_hmac": { "engine": "hash", "algorithm": "sha256",  "key_ref": "k1", "header_enabled": false },
+      "h_sha384_hmac": { "engine": "hash", "algorithm": "sha384",  "key_ref": "k1", "header_enabled": false },
+      "h_sha512_hmac": { "engine": "hash", "algorithm": "sha512",  "key_ref": "k1", "header_enabled": false },
+      "h_sha256_plain": { "engine": "hash", "algorithm": "sha256",                  "header_enabled": false },
+      "h_sha384_plain": { "engine": "hash", "algorithm": "sha384",                  "header_enabled": false },
+      "h_sha512_plain": { "engine": "hash", "algorithm": "sha512",                  "header_enabled": false },
+      "h_sha_256_alias": { "engine": "hash", "algorithm": "sha-256", "key_ref": "k1", "header_enabled": false }
+    },
+    "keys": {
+      "k1": { "material": "2B7E151628AED2A6ABF7158809CF4F3C" }
+    }
+  },
+  "cases": [
+    { "configuration": "h_sha256_hmac", "plaintext": "123-45-6789",        "force_method": "protect_only_deterministic", "note": "HMAC-SHA256 SSN" },
+    { "configuration": "h_sha256_hmac", "plaintext": "",                   "force_method": "protect_only_deterministic", "note": "HMAC-SHA256 empty string" },
+    { "configuration": "h_sha256_hmac", "plaintext": "the quick brown fox", "force_method": "protect_only_deterministic", "note": "HMAC-SHA256 sentence" },
+    { "configuration": "h_sha256_hmac", "plaintext": "00000000",           "force_method": "protect_only_deterministic", "note": "HMAC-SHA256 all-zero string" },
+
+    { "configuration": "h_sha384_hmac", "plaintext": "123-45-6789",        "force_method": "protect_only_deterministic", "note": "HMAC-SHA384" },
+    { "configuration": "h_sha384_hmac", "plaintext": "longer input here",  "force_method": "protect_only_deterministic", "note": "HMAC-SHA384 longer" },
+
+    { "configuration": "h_sha512_hmac", "plaintext": "123-45-6789",        "force_method": "protect_only_deterministic", "note": "HMAC-SHA512 SSN" },
+    { "configuration": "h_sha512_hmac", "plaintext": "",                   "force_method": "protect_only_deterministic", "note": "HMAC-SHA512 empty" },
+
+    { "configuration": "h_sha256_plain", "plaintext": "123-45-6789",       "force_method": "protect_only_deterministic", "note": "Plain SHA-256 (no key) SSN" },
+    { "configuration": "h_sha256_plain", "plaintext": "",                  "force_method": "protect_only_deterministic", "note": "Plain SHA-256 empty (well-known hash)" },
+    { "configuration": "h_sha384_plain", "plaintext": "123-45-6789",       "force_method": "protect_only_deterministic", "note": "Plain SHA-384" },
+    { "configuration": "h_sha512_plain", "plaintext": "123-45-6789",       "force_method": "protect_only_deterministic", "note": "Plain SHA-512" },
+
+    { "configuration": "h_sha_256_alias", "plaintext": "123-45-6789",      "force_method": "protect_only_deterministic", "note": "Algorithm name alias 'sha-256' (vs 'sha256') — should resolve same" }
+  ]
+}

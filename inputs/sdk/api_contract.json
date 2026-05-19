@@ -1,118 +1,109 @@
 {
-  "note": "API contract tests — explicitly exercise every canonical method exposed by every SDK. Failures here mean the SDK either doesn't expose the method, or behaves differently from the spec. Catches API surface divergence that crypto-roundtrip tests miss.",
+  "note": "API contract tests — exhaustively exercises every canonical method on every engine + configuration variant. Failures expose API surface divergence (missing methods, wrong signatures, different behavior). Each SDK MUST report identical pass/fail across these cases.",
   "config": {
     "configurations": {
       "ssn": {
-        "engine": "ff1",
-        "key_ref": "test-key",
-        "header": "T01"
+        "engine": "ff1", "key_ref": "test-key", "header": "T01"
       },
       "ssn_no_header": {
-        "engine": "ff1",
-        "alphabet": "digits",
-        "header_enabled": false,
-        "key_ref": "test-key"
+        "engine": "ff1", "alphabet": "digits", "header_enabled": false, "key_ref": "test-key"
       },
       "cc": {
-        "engine": "ff1",
-        "key_ref": "test-key",
-        "header": "T02"
+        "engine": "ff1", "key_ref": "test-key", "header": "T02"
+      },
+      "phone": {
+        "engine": "ff1", "key_ref": "test-key", "header": "T03"
+      },
+      "email_local": {
+        "engine": "ff1", "alphabet": "alphanumeric", "key_ref": "test-key", "header": "T04"
+      },
+      "name_lower": {
+        "engine": "ff1", "alphabet": "alpha_lower", "key_ref": "test-key", "header": "T05"
+      },
+      "name_upper": {
+        "engine": "ff1", "alphabet": "alpha_upper", "key_ref": "test-key", "header": "T06"
+      },
+      "name_mixed": {
+        "engine": "ff1", "alphabet": "alpha", "key_ref": "test-key", "header": "T07"
       },
       "long_header": {
-        "engine": "ff1",
-        "alphabet": "alphanumeric",
-        "key_ref": "test-key",
-        "header": "ABCDE",
-        "header_length": 5
+        "engine": "ff1", "alphabet": "alphanumeric", "key_ref": "test-key", "header": "ABCDE", "header_length": 5
       },
-      "ssn_mask": {
-        "engine": "mask",
-        "pattern": "last4",
-        "header_enabled": false
+      "two_char_header": {
+        "engine": "ff1", "alphabet": "alphanumeric", "key_ref": "test-key", "header": "XY", "header_length": 2
       },
-      "ssn_hash": {
-        "engine": "hash",
-        "algorithm": "sha256",
-        "key_ref": "test-key",
-        "header_enabled": false
+      "ff3_digits": {
+        "engine": "ff3", "alphabet": "digits", "key_ref": "test-key", "header": "F31"
+      },
+      "ff3_no_header": {
+        "engine": "ff3", "alphabet": "digits", "header_enabled": false, "key_ref": "test-key"
+      },
+      "ssn_mask_last4": {
+        "engine": "mask", "pattern": "last4", "header_enabled": false
+      },
+      "ssn_mask_first1": {
+        "engine": "mask", "pattern": "first1", "header_enabled": false
+      },
+      "ssn_mask_full": {
+        "engine": "mask", "pattern": "full", "header_enabled": false
+      },
+      "ssn_hash_sha256": {
+        "engine": "hash", "algorithm": "sha256", "key_ref": "test-key", "header_enabled": false
+      },
+      "ssn_hash_sha512": {
+        "engine": "hash", "algorithm": "sha512", "key_ref": "test-key", "header_enabled": false
+      },
+      "ssn_hash_plain_sha256": {
+        "engine": "hash", "algorithm": "sha256", "header_enabled": false
       }
     },
     "keys": {
-      "test-key": {
-        "material": "2B7E151628AED2A6ABF7158809CF4F3C"
-      }
+      "test-key": { "material": "2B7E151628AED2A6ABF7158809CF4F3C" }
     }
   },
   "cases": [
-    {
-      "configuration": "ssn",
-      "plaintext": "123456789",
-      "force_method": "access_by_header",
-      "note": "access_by_header on header_enabled=true config — canonical happy path"
-    },
-    {
-      "configuration": "cc",
-      "plaintext": "4111111111111111",
-      "force_method": "access_by_header",
-      "note": "access_by_header on second header_enabled=true config — different header prefix"
-    },
-    {
-      "configuration": "long_header",
-      "plaintext": "abcdefghij",
-      "force_method": "access_by_header",
-      "note": "access_by_header with a 5-char header — header_length non-default"
-    },
-    {
-      "configuration": "ssn_no_header",
-      "plaintext": "123456789",
-      "force_method": "access",
-      "note": "access(value, name) on header_enabled=false config — canonical 2-arg happy path"
-    },
-    {
-      "configuration": "ssn",
-      "plaintext": "123456789",
-      "force_method": "access",
-      "expect_error": true,
-      "error_must_contain": "header_enabled=true",
-      "note": "access(value, name) on header_enabled=true MUST error per Option C"
-    },
-    {
-      "configuration": "ssn",
-      "plaintext": "123456789",
-      "force_method": "access_by_header_unknown_prefix",
-      "expect_error": true,
-      "error_must_contain": "no matching header",
-      "input_override": "ZZZ123456789",
-      "note": "access_by_header on a value that doesn't start with any known header MUST error"
-    },
-    {
-      "configuration": "ssn_mask",
-      "plaintext": "123-45-6789",
-      "force_method": "protect_only",
-      "expected": "*******6789",
-      "note": "mask engine — verify protect output (mask is one-way)"
-    },
-    {
-      "configuration": "ssn_hash",
-      "plaintext": "123-45-6789",
-      "force_method": "protect_only_deterministic",
-      "note": "hash engine — verify protect is deterministic and one-way"
-    },
-    {
-      "configuration": "nonexistent",
-      "plaintext": "anything",
-      "force_method": "protect_only",
-      "expect_error": true,
-      "error_must_contain": "configuration",
-      "note": "protect with unknown configuration name MUST error"
-    },
-    {
-      "configuration": "ssn_no_header",
-      "plaintext": "123456789",
-      "force_method": "access_by_header",
-      "expect_error": true,
-      "error_must_contain": "no matching header",
-      "note": "access_by_header on output of a header_enabled=false config MUST error (no header to match)"
-    }
+    { "configuration": "ssn",           "plaintext": "123456789",          "force_method": "access_by_header", "note": "access_by_header on basic headered ff1+alphanumeric" },
+    { "configuration": "cc",            "plaintext": "4111111111111111",   "force_method": "access_by_header", "note": "access_by_header — credit-card length" },
+    { "configuration": "phone",         "plaintext": "5551234567",         "force_method": "access_by_header", "note": "access_by_header — phone digits" },
+    { "configuration": "email_local",   "plaintext": "myname42",           "force_method": "access_by_header", "note": "access_by_header — email-local-part shape" },
+    { "configuration": "name_lower",    "plaintext": "abcdefghij",         "force_method": "access_by_header", "note": "access_by_header — alpha_lower (radix 26)" },
+    { "configuration": "name_upper",    "plaintext": "ABCDEFGHIJ",         "force_method": "access_by_header", "note": "access_by_header — alpha_upper (radix 26)" },
+    { "configuration": "name_mixed",    "plaintext": "AbCdEfGhIj",         "force_method": "access_by_header", "note": "access_by_header — alpha (radix 52) mixed" },
+    { "configuration": "long_header",   "plaintext": "abcdefghij",         "force_method": "access_by_header", "note": "access_by_header with 5-char header (header_length=5)" },
+    { "configuration": "two_char_header", "plaintext": "abcdefghij",       "force_method": "access_by_header", "note": "access_by_header with 2-char header (header_length=2)" },
+    { "configuration": "ff3_digits",    "plaintext": "0123456789",         "force_method": "access_by_header", "note": "access_by_header on FF3 — same contract as FF1" },
+
+    { "configuration": "ssn",           "plaintext": "123-45-6789",        "force_method": "access_by_header", "note": "access_by_header with passthrough dashes" },
+    { "configuration": "ssn",           "plaintext": "(123) 456-7890",     "force_method": "access_by_header", "note": "access_by_header with parens + space + dash" },
+    { "configuration": "ssn",           "plaintext": "1234 5678 9012",     "force_method": "access_by_header", "note": "access_by_header with space passthroughs" },
+
+    { "configuration": "ssn_no_header", "plaintext": "123456789",          "force_method": "access",           "note": "access(value, name) on headerless ff1" },
+    { "configuration": "ff3_no_header", "plaintext": "0123456789",         "force_method": "access",           "note": "access(value, name) on headerless ff3" },
+    { "configuration": "ssn_no_header", "plaintext": "0000000000",         "force_method": "access",           "note": "access on headerless — all zeros" },
+
+    { "configuration": "ssn",         "plaintext": "123456789", "force_method": "access",          "expect_error": true, "error_must_contain": "header_enabled", "note": "access(name) on headered ff1 → must error per Option C" },
+    { "configuration": "cc",          "plaintext": "4111111111111111", "force_method": "access",   "expect_error": true, "error_must_contain": "header_enabled", "note": "access(name) on different headered config → same error" },
+    { "configuration": "ff3_digits",  "plaintext": "0123456789", "force_method": "access",         "expect_error": true, "error_must_contain": "header_enabled", "note": "access(name) on headered ff3 → must error" },
+    { "configuration": "long_header", "plaintext": "abcdefghij", "force_method": "access",         "expect_error": true, "error_must_contain": "header_enabled", "note": "access(name) on header_length=5 config → must error" },
+
+    { "configuration": "ssn",           "plaintext": "123456789", "force_method": "access_by_header_unknown_prefix", "input_override": "ZZZ123456789", "expect_error": true, "error_must_contain": "no matching header", "note": "access_by_header — value doesn't start with any known header" },
+    { "configuration": "ssn",           "plaintext": "123456789", "force_method": "access_by_header_unknown_prefix", "input_override": "AAA123456789", "expect_error": true, "error_must_contain": "no matching header", "note": "access_by_header — different invalid prefix" },
+    { "configuration": "ssn_no_header", "plaintext": "123456789", "force_method": "access_by_header",                                                "expect_error": true, "error_must_contain": "no matching header", "note": "access_by_header on output of headerless config — no header to find" },
+
+    { "configuration": "ssn_mask_last4",  "plaintext": "123-45-6789", "force_method": "protect_only", "expected": "*******6789", "note": "mask last4" },
+    { "configuration": "ssn_mask_first1", "plaintext": "Leslie",      "force_method": "protect_only", "expected": "L*****",      "note": "mask first1" },
+    { "configuration": "ssn_mask_full",   "plaintext": "secret",      "force_method": "protect_only", "expected": "******",      "note": "mask full" },
+    { "configuration": "ssn_mask_last4",  "plaintext": "4111111111111111", "force_method": "protect_only", "expected": "************1111", "note": "mask last4 on credit-card length" },
+
+    { "configuration": "ssn_hash_sha256",       "plaintext": "123-45-6789", "force_method": "protect_only_deterministic", "note": "HMAC-SHA256 deterministic" },
+    { "configuration": "ssn_hash_sha512",       "plaintext": "123-45-6789", "force_method": "protect_only_deterministic", "note": "HMAC-SHA512 deterministic" },
+    { "configuration": "ssn_hash_plain_sha256", "plaintext": "123-45-6789", "force_method": "protect_only_deterministic", "note": "Plain SHA-256 (no key_ref) deterministic" },
+    { "configuration": "ssn_hash_sha256",       "plaintext": "",            "force_method": "protect_only_deterministic", "note": "HMAC-SHA256 of empty string deterministic" },
+
+    { "configuration": "ssn_hash_sha256", "plaintext": "x", "force_method": "access_on_hash_output", "expect_error": true, "error_must_contain": "reverse", "note": "access on hash output MUST error (irreversible)" },
+    { "configuration": "ssn_mask_last4",  "plaintext": "12345", "force_method": "access_on_mask_output", "expect_error": true, "error_must_contain": "reverse", "note": "access on mask output MUST error (irreversible)" },
+
+    { "configuration": "nonexistent",     "plaintext": "anything", "force_method": "protect_only", "expect_error": true, "error_must_contain": "configuration", "note": "protect with unknown configuration name → error" },
+    { "configuration": "nonexistent",     "plaintext": "anything", "force_method": "access",       "expect_error": true, "error_must_contain": "configuration", "note": "access with unknown configuration name → error" }
   ]
 }
