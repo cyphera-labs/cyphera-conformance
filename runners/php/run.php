@@ -117,14 +117,79 @@ function runSdk(array $input): array
     foreach ($input['cases'] as $c) {
         $policy = $c['configuration'] ?? 'test';
         $plaintext = $c['plaintext'] ?? '';
+        $forceMethod = $c['force_method'] ?? null;
+        $expectError = $c['expect_error'] ?? false;
+        $errorMustContain = $c['error_must_contain'] ?? null;
+        $inputOverride = $c['input_override'] ?? null;
         $r = $c;
 
         if (!$client) {
             $r['error'] = $clientError ?? 'no config provided';
+            $r['expect_error_satisfied'] = $expectError;
             $results[] = $r;
             continue;
         }
 
+        // ─── force_method dispatch ───
+        if ($forceMethod !== null) {
+            $errMsg = null;
+            try {
+                switch ($forceMethod) {
+                    case 'protect_only':
+                        $p = $client->protect($plaintext, $policy);
+                        $r['protected'] = $p;
+                        if (isset($c['expected'])) $r['matches_expected'] = $p === $c['expected'];
+                        break;
+                    case 'protect_only_deterministic':
+                        $p1 = $client->protect($plaintext, $policy);
+                        $p2 = $client->protect($plaintext, $policy);
+                        $r['protected'] = $p1;
+                        $r['deterministic'] = $p1 === $p2;
+                        break;
+                    case 'access':
+                        $p = $client->protect($plaintext, $policy);
+                        $r['protected'] = $p;
+                        $a = $client->access($p, $policy);
+                        $r['accessed'] = $a;
+                        $r['roundtrip'] = $a === $plaintext;
+                        break;
+                    case 'access_by_header':
+                        $p = $client->protect($plaintext, $policy);
+                        $r['protected'] = $p;
+                        $a = $client->accessByHeader($p);
+                        $r['accessed'] = $a;
+                        $r['roundtrip'] = $a === $plaintext;
+                        break;
+                    case 'access_by_header_unknown_prefix':
+                        $client->accessByHeader($inputOverride ?? 'ZZZ12345');
+                        break;
+                    case 'access_on_mask_output':
+                        $m = $client->protect($plaintext, $policy);
+                        $r['protected'] = $m;
+                        $client->access($m, $policy);
+                        break;
+                    case 'access_on_hash_output':
+                        $h = $client->protect($plaintext, $policy);
+                        $r['protected'] = $h;
+                        $client->access($h, $policy);
+                        break;
+                    default:
+                        $errMsg = "unknown force_method: $forceMethod";
+                }
+            } catch (\Throwable $e) {
+                $errMsg = $e->getMessage();
+            }
+            $r['error'] = $errMsg;
+            $errored = $errMsg !== null;
+            $r['expect_error_satisfied'] = $errored === $expectError;
+            if ($expectError && $errorMustContain !== null && $errored) {
+                $r['error_message_satisfied'] = stripos($errMsg, $errorMustContain) !== false;
+            }
+            $results[] = $r;
+            continue;
+        }
+
+        // ─── default dispatch ───
         try {
             $protected = $client->protect($plaintext, $policy);
             $r['protected'] = $protected;
@@ -146,18 +211,16 @@ function runSdk(array $input): array
                 $tagEnabled = isTagEnabled($input, $policy);
 
                 if ($tagEnabled) {
-                    // Headered config: header-based access only. 2-arg access MUST error.
                     $accessed = $client->accessByHeader($protected);
                     $r['accessed'] = $accessed;
                     $r['roundtrip'] = $accessed === $plaintext;
                     try {
                         $client->access($protected, $policy);
-                        $r['explicit_on_headered_errored'] = false; // bug: did not error
+                        $r['explicit_on_headered_errored'] = false;
                     } catch (\Throwable $_) {
-                        $r['explicit_on_headered_errored'] = true; // expected
+                        $r['explicit_on_headered_errored'] = true;
                     }
                 } else {
-                    // Headerless config: 2-arg explicit access only.
                     $accessed = $client->access($protected, $policy);
                     $r['accessed'] = $accessed;
                     $r['roundtrip'] = $accessed === $plaintext;
