@@ -128,14 +128,98 @@ JsonNode RunSdk(JsonNode input)
         var r = JsonNode.Parse(c!.ToJsonString())!;
         var policy = c!["configuration"]?.GetValue<string>() ?? "test";
         var plaintext = c["plaintext"]?.GetValue<string>() ?? "";
+        var forceMethod = c["force_method"]?.GetValue<string>();
+        var expectError = c["expect_error"]?.GetValue<bool>() ?? false;
+        var errorMustContain = c["error_must_contain"]?.GetValue<string>();
+        var inputOverride = c["input_override"]?.GetValue<string>();
 
         if (client == null)
         {
             r["error"] = clientError ?? "no config provided";
+            r["expect_error_satisfied"] = expectError;
             results.Add(r);
             continue;
         }
 
+        // ─── force_method dispatch ───
+        if (forceMethod != null)
+        {
+            string? errMsg = null;
+            try
+            {
+                switch (forceMethod)
+                {
+                    case "protect_only":
+                    {
+                        var p = client.Protect(plaintext, policy);
+                        r["protected"] = p;
+                        if (c["expected"] != null) r["matches_expected"] = p == c["expected"]!.GetValue<string>();
+                        break;
+                    }
+                    case "protect_only_deterministic":
+                    {
+                        var p1 = client.Protect(plaintext, policy);
+                        var p2 = client.Protect(plaintext, policy);
+                        r["protected"] = p1;
+                        r["deterministic"] = p1 == p2;
+                        break;
+                    }
+                    case "access":
+                    {
+                        var p = client.Protect(plaintext, policy);
+                        r["protected"] = p;
+                        var a = client.Access(p, policy);
+                        r["accessed"] = a;
+                        r["roundtrip"] = a == plaintext;
+                        break;
+                    }
+                    case "access_by_header":
+                    {
+                        var p = client.Protect(plaintext, policy);
+                        r["protected"] = p;
+                        var a = client.AccessByHeader(p);
+                        r["accessed"] = a;
+                        r["roundtrip"] = a == plaintext;
+                        break;
+                    }
+                    case "access_by_header_unknown_prefix":
+                        client.AccessByHeader(inputOverride ?? "ZZZ12345");
+                        break;
+                    case "access_on_mask_output":
+                    {
+                        var m = client.Protect(plaintext, policy);
+                        r["protected"] = m;
+                        client.Access(m, policy);
+                        break;
+                    }
+                    case "access_on_hash_output":
+                    {
+                        var h = client.Protect(plaintext, policy);
+                        r["protected"] = h;
+                        client.Access(h, policy);
+                        break;
+                    }
+                    default:
+                        errMsg = "unknown force_method: " + forceMethod;
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                errMsg = e.Message;
+            }
+            r["error"] = errMsg;
+            var errored = errMsg != null;
+            r["expect_error_satisfied"] = errored == expectError;
+            if (expectError && errorMustContain != null && errored)
+            {
+                r["error_message_satisfied"] = errMsg!.ToLower().Contains(errorMustContain.ToLower());
+            }
+            results.Add(r);
+            continue;
+        }
+
+        // ─── default dispatch ───
         try
         {
             var protected_ = client.Protect(plaintext, policy);
@@ -162,23 +246,21 @@ JsonNode RunSdk(JsonNode input)
             {
                 if (tagEnabled)
                 {
-                    // Headered config: header-based access only. 2-arg access MUST error.
                     var accessed = client.AccessByHeader(protected_);
                     r["accessed"] = accessed;
                     r["roundtrip"] = accessed == plaintext;
                     try
                     {
                         client.Access(protected_, policy);
-                        r["explicit_on_headered_errored"] = false; // bug: did not error
+                        r["explicit_on_headered_errored"] = false;
                     }
                     catch
                     {
-                        r["explicit_on_headered_errored"] = true; // expected
+                        r["explicit_on_headered_errored"] = true;
                     }
                 }
                 else
                 {
-                    // Headerless config: 2-arg explicit access only.
                     var accessed = client.Access(protected_, policy);
                     r["accessed"] = accessed;
                     r["roundtrip"] = accessed == plaintext;
