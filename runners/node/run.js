@@ -131,7 +131,7 @@ function runSdk(input) {
 
         if (tagEnabled) {
           // Headered config: header-based access only. 2-arg access MUST error.
-          const accessed = client.access(protected_);
+          const accessed = client.accessByHeader(protected_);
           r.accessed = accessed;
           r.roundtrip = accessed === plaintext;
           try {

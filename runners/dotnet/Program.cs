@@ -163,7 +163,7 @@ JsonNode RunSdk(JsonNode input)
                 if (tagEnabled)
                 {
                     // Headered config: header-based access only. 2-arg access MUST error.
-                    var accessed = client.Access(protected_);
+                    var accessed = client.AccessByHeader(protected_);
                     r["accessed"] = accessed;
                     r["roundtrip"] = accessed == plaintext;
                     try

@@ -165,7 +165,7 @@ public class Runner {
 
                     if (tagEnabled) {
                         // Headered config: header-based access only. 2-arg access MUST error.
-                        String accessed = client.access(protectedVal);
+                        String accessed = client.accessByHeader(protectedVal);
                         r.addProperty("accessed", accessed);
                         r.addProperty("roundtrip", accessed.equals(plaintext));
                         try {

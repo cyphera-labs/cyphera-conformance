@@ -160,18 +160,18 @@ func runSdk(_ input: [String: Any]) -> [String: Any] {
 
                 if tagEnabled {
                     // Headered config: header-based access only. 2-arg access MUST error.
-                    let accessed = try client.access(protected)
+                    let accessed = try client.accessByHeader(protected)
                     r["accessed"] = accessed
                     r["roundtrip"] = accessed == plaintext
                     do {
-                        _ = try client.access(protected, policy: policy)
+                        _ = try client.access(protected, configuration: policy)
                         r["explicit_on_headered_errored"] = false  // bug: did not error
                     } catch {
                         r["explicit_on_headered_errored"] = true   // expected
                     }
                 } else {
                     // Headerless config: 2-arg explicit access only.
-                    let accessed = try client.access(protected, policy: policy)
+                    let accessed = try client.access(protected, configuration: policy)
                     r["accessed"] = accessed
                     r["roundtrip"] = accessed == plaintext
                 }

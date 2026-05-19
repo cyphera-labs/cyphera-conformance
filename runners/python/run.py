@@ -91,7 +91,7 @@ def run_sdk(data):
                 if tag_enabled:
                     # Headered config: header-based access is the only valid path.
                     # 2-arg access(value, name) MUST error per spec.
-                    accessed = client.access(protected)
+                    accessed = client.access_by_header(protected)
                     r["accessed"] = accessed
                     r["roundtrip"] = accessed == pt
                     try:

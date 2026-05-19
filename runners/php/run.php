@@ -147,7 +147,7 @@ function runSdk(array $input): array
 
                 if ($tagEnabled) {
                     // Headered config: header-based access only. 2-arg access MUST error.
-                    $accessed = $client->access($protected);
+                    $accessed = $client->accessByHeader($protected);
                     $r['accessed'] = $accessed;
                     $r['roundtrip'] = $accessed === $plaintext;
                     try {
