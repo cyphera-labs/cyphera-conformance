@@ -1,0 +1,106 @@
+{
+  "note": "Error condition matrix — every error documented in the spec's Error Behavior table. Each case sets up a scenario expected to fail, and records whether the SDK errored. Comparison phase asserts all SDKs errored on the same cases.",
+  "config": {
+    "configurations": {
+      "ssn": {
+        "engine": "ff1",
+        "key_ref": "test-key",
+        "header": "T01"
+      },
+      "ssn_no_header": {
+        "engine": "ff1",
+        "alphabet": "digits",
+        "header_enabled": false,
+        "key_ref": "test-key"
+      },
+      "missing_key": {
+        "engine": "ff1",
+        "header_enabled": false,
+        "key_ref": "does-not-exist"
+      },
+      "ssn_mask": {
+        "engine": "mask",
+        "pattern": "last4",
+        "header_enabled": false
+      },
+      "ssn_hash": {
+        "engine": "hash",
+        "algorithm": "sha256",
+        "key_ref": "test-key",
+        "header_enabled": false
+      }
+    },
+    "keys": {
+      "test-key": {
+        "material": "2B7E151628AED2A6ABF7158809CF4F3C"
+      }
+    }
+  },
+  "cases": [
+    {
+      "configuration": "nonexistent",
+      "plaintext": "12345",
+      "force_method": "protect_only",
+      "expect_error": true,
+      "error_must_contain": "configuration",
+      "note": "Configuration not found"
+    },
+    {
+      "configuration": "missing_key",
+      "plaintext": "12345",
+      "force_method": "protect_only",
+      "expect_error": true,
+      "error_must_contain": "key",
+      "note": "Key not found"
+    },
+    {
+      "configuration": "ssn",
+      "plaintext": "---",
+      "force_method": "protect_only",
+      "expect_error": true,
+      "error_must_contain": "encryptable",
+      "note": "Zero encryptable characters (all passthroughs)"
+    },
+    {
+      "configuration": "ssn_no_header",
+      "plaintext": "a",
+      "force_method": "protect_only",
+      "expect_error": true,
+      "error_must_contain": "short",
+      "note": "Input below NIST minimum domain size"
+    },
+    {
+      "configuration": "ssn_mask",
+      "plaintext": "123-45-6789",
+      "force_method": "access_on_mask_output",
+      "expect_error": true,
+      "error_must_contain": "reverse",
+      "note": "access() on mask output — not reversible"
+    },
+    {
+      "configuration": "ssn_hash",
+      "plaintext": "123-45-6789",
+      "force_method": "access_on_hash_output",
+      "expect_error": true,
+      "error_must_contain": "reverse",
+      "note": "access() on hash output — not reversible"
+    },
+    {
+      "configuration": "ssn",
+      "plaintext": "123456789",
+      "force_method": "access_by_header_unknown_prefix",
+      "input_override": "ZZZ123456789",
+      "expect_error": true,
+      "error_must_contain": "no matching header",
+      "note": "No matching header in access_by_header()"
+    },
+    {
+      "configuration": "ssn",
+      "plaintext": "123456789",
+      "force_method": "access",
+      "expect_error": true,
+      "error_must_contain": "header_enabled=true",
+      "note": "access(value, name) with header_enabled=true configuration"
+    }
+  ]
+}

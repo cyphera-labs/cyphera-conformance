@@ -1,0 +1,137 @@
+{
+  "note": "Schema fidelity — exercise every documented JSON field in cyphera.json. SDKs that silently drop fields will show divergent behavior here. Output of each case is compared across all SDKs.",
+  "config": {
+    "configurations": {
+      "ff1_default_alpha": {
+        "engine": "ff1",
+        "key_ref": "k",
+        "header": "F1A"
+      },
+      "ff1_digits": {
+        "engine": "ff1",
+        "alphabet": "digits",
+        "key_ref": "k",
+        "header": "F1D"
+      },
+      "ff1_alpha_lower": {
+        "engine": "ff1",
+        "alphabet": "alpha_lower",
+        "key_ref": "k",
+        "header": "F1L"
+      },
+      "ff1_alpha_upper": {
+        "engine": "ff1",
+        "alphabet": "alpha_upper",
+        "key_ref": "k",
+        "header": "F1U"
+      },
+      "ff1_alpha_mixed": {
+        "engine": "ff1",
+        "alphabet": "alpha",
+        "key_ref": "k",
+        "header": "F1M"
+      },
+      "ff1_alphanumeric": {
+        "engine": "ff1",
+        "alphabet": "alphanumeric",
+        "key_ref": "k",
+        "header": "F1N"
+      },
+      "ff1_custom_alpha": {
+        "engine": "ff1",
+        "alphabet": "0123456789abcdef",
+        "key_ref": "k",
+        "header": "F1H"
+      },
+      "ff3_digits": {
+        "engine": "ff3",
+        "alphabet": "digits",
+        "key_ref": "k",
+        "header": "F3D"
+      },
+      "header_length_5": {
+        "engine": "ff1",
+        "alphabet": "alphanumeric",
+        "key_ref": "k",
+        "header": "ABCDE",
+        "header_length": 5
+      },
+      "header_length_2": {
+        "engine": "ff1",
+        "alphabet": "alphanumeric",
+        "key_ref": "k",
+        "header": "XY",
+        "header_length": 2
+      },
+      "no_header": {
+        "engine": "ff1",
+        "alphabet": "alphanumeric",
+        "header_enabled": false,
+        "key_ref": "k"
+      },
+      "no_header_digits": {
+        "engine": "ff1",
+        "alphabet": "digits",
+        "header_enabled": false,
+        "key_ref": "k"
+      },
+      "mask_last4": {
+        "engine": "mask",
+        "pattern": "last4",
+        "header_enabled": false
+      },
+      "mask_first1": {
+        "engine": "mask",
+        "pattern": "first1",
+        "header_enabled": false
+      },
+      "mask_full": {
+        "engine": "mask",
+        "pattern": "full",
+        "header_enabled": false
+      },
+      "hash_sha256_hmac": {
+        "engine": "hash",
+        "algorithm": "sha256",
+        "key_ref": "k",
+        "header_enabled": false
+      },
+      "hash_sha256_plain": {
+        "engine": "hash",
+        "algorithm": "sha256",
+        "header_enabled": false
+      },
+      "hash_sha512_hmac": {
+        "engine": "hash",
+        "algorithm": "sha512",
+        "key_ref": "k",
+        "header_enabled": false
+      }
+    },
+    "keys": {
+      "k": {
+        "material": "2B7E151628AED2A6ABF7158809CF4F3C"
+      }
+    }
+  },
+  "cases": [
+    { "configuration": "ff1_default_alpha", "plaintext": "abc123XYZ", "note": "ff1 default (alphanumeric) — verify default alphabet" },
+    { "configuration": "ff1_digits", "plaintext": "123456789", "note": "ff1 with digits alphabet" },
+    { "configuration": "ff1_alpha_lower", "plaintext": "abcdefghij", "note": "ff1 with alpha_lower" },
+    { "configuration": "ff1_alpha_upper", "plaintext": "ABCDEFGHIJ", "note": "ff1 with alpha_upper" },
+    { "configuration": "ff1_alpha_mixed", "plaintext": "AbCdEfGhIj", "note": "ff1 with mixed-case alpha (radix 52)" },
+    { "configuration": "ff1_alphanumeric", "plaintext": "abc123XYZ", "note": "ff1 with explicit alphanumeric" },
+    { "configuration": "ff1_custom_alpha", "plaintext": "abcdef0123", "note": "ff1 with custom alphabet string (hex chars)" },
+    { "configuration": "ff3_digits", "plaintext": "123456789", "note": "ff3 with digits — different engine, same plaintext" },
+    { "configuration": "header_length_5", "plaintext": "abc123", "note": "Configuration with header_length=5 — SDK must honor non-default header_length" },
+    { "configuration": "header_length_2", "plaintext": "abc123", "note": "Configuration with header_length=2 — different non-default" },
+    { "configuration": "no_header", "plaintext": "abc123", "force_method": "access", "note": "header_enabled=false alphanumeric — only access(name) works" },
+    { "configuration": "no_header_digits", "plaintext": "1234567890", "force_method": "access", "note": "header_enabled=false digits" },
+    { "configuration": "mask_last4", "plaintext": "123-45-6789", "force_method": "protect_only", "expected": "*******6789", "note": "mask last4" },
+    { "configuration": "mask_first1", "plaintext": "Leslie", "force_method": "protect_only", "expected": "L*****", "note": "mask first1" },
+    { "configuration": "mask_full", "plaintext": "secret", "force_method": "protect_only", "expected": "******", "note": "mask full" },
+    { "configuration": "hash_sha256_hmac", "plaintext": "deadbeef", "force_method": "protect_only_deterministic", "note": "HMAC-SHA256 deterministic" },
+    { "configuration": "hash_sha256_plain", "plaintext": "deadbeef", "force_method": "protect_only_deterministic", "note": "Plain SHA-256 (no key_ref) deterministic" },
+    { "configuration": "hash_sha512_hmac", "plaintext": "deadbeef", "force_method": "protect_only_deterministic", "note": "HMAC-SHA512 deterministic" }
+  ]
+}

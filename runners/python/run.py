@@ -64,18 +64,74 @@ def run_sdk(data):
         r = dict(c)
         policy = c.get("configuration", "test")
         pt = c.get("plaintext", "")
+        force_method = c.get("force_method")
+        expect_error = c.get("expect_error", False)
+        error_must_contain = c.get("error_must_contain")
+        input_override = c.get("input_override")
 
         if not client or isinstance(client, dict):
             r["error"] = client.get("_error", "no config") if isinstance(client, dict) else "no config"
+            r["expect_error_satisfied"] = expect_error and r["error"] is not None
             results.append(r)
             continue
 
+        engine_type = data.get("config", {}).get("configurations", {}).get(policy, {}).get("engine", "ff1")
+        tag_enabled = data.get("config", {}).get("configurations", {}).get(policy, {}).get("header_enabled", True)
+
+        # ─── force_method dispatch (api_contract / error_conditions / schema_fidelity) ───
+        if force_method:
+            r["error"] = None
+            try:
+                if force_method == "protect_only":
+                    protected = client.protect(pt, policy)
+                    r["protected"] = protected
+                    if "expected" in c:
+                        r["matches_expected"] = protected == c["expected"]
+                elif force_method == "protect_only_deterministic":
+                    p1 = client.protect(pt, policy)
+                    p2 = client.protect(pt, policy)
+                    r["protected"] = p1
+                    r["deterministic"] = p1 == p2
+                elif force_method == "access":
+                    protected = client.protect(pt, policy)
+                    r["protected"] = protected
+                    accessed = client.access(protected, policy)
+                    r["accessed"] = accessed
+                    r["roundtrip"] = accessed == pt
+                elif force_method == "access_by_header":
+                    protected = client.protect(pt, policy)
+                    r["protected"] = protected
+                    accessed = client.access_by_header(protected)
+                    r["accessed"] = accessed
+                    r["roundtrip"] = accessed == pt
+                elif force_method == "access_by_header_unknown_prefix":
+                    # Don't even protect — call access_by_header on a known-bad value
+                    client.access_by_header(input_override or "ZZZ12345")
+                elif force_method == "access_on_mask_output":
+                    masked = client.protect(pt, policy)
+                    r["protected"] = masked
+                    client.access(masked, policy)
+                elif force_method == "access_on_hash_output":
+                    hashed = client.protect(pt, policy)
+                    r["protected"] = hashed
+                    client.access(hashed, policy)
+                else:
+                    r["error"] = f"unknown force_method: {force_method}"
+            except Exception as e:
+                r["error"] = str(e)
+
+            # Check expectations
+            errored = r["error"] is not None
+            r["expect_error_satisfied"] = (errored == expect_error)
+            if expect_error and error_must_contain and errored:
+                r["error_message_satisfied"] = error_must_contain.lower() in r["error"].lower()
+            results.append(r)
+            continue
+
+        # ─── default dispatch (existing roundtrip pattern) ───
         try:
             protected = client.protect(pt, policy)
             r["protected"] = protected
-
-            engine_type = data.get("config", {}).get("configurations", {}).get(policy, {}).get("engine", "ff1")
-            tag_enabled = data.get("config", {}).get("configurations", {}).get(policy, {}).get("header_enabled", True)
 
             if engine_type == "mask":
                 if "expected" in c:
@@ -89,18 +145,15 @@ def run_sdk(data):
                 r["error"] = None
             else:
                 if tag_enabled:
-                    # Headered config: header-based access is the only valid path.
-                    # 2-arg access(value, name) MUST error per spec.
                     accessed = client.access_by_header(protected)
                     r["accessed"] = accessed
                     r["roundtrip"] = accessed == pt
                     try:
                         client.access(protected, policy)
-                        r["explicit_on_headered_errored"] = False  # bug: did not error
+                        r["explicit_on_headered_errored"] = False
                     except Exception:
-                        r["explicit_on_headered_errored"] = True   # expected
+                        r["explicit_on_headered_errored"] = True
                 else:
-                    # Headerless config: 2-arg explicit access is the only valid path.
                     accessed = client.access(protected, policy)
                     r["accessed"] = accessed
                     r["roundtrip"] = accessed == pt
@@ -111,7 +164,7 @@ def run_sdk(data):
             r["error"] = str(e)
         results.append(r)
 
-    return {**data, "results": results, "runner": "python", "sdk_version": "0.0.1a4"}
+    return {**data, "results": results, "runner": "python", "sdk_version": "0.0.1a6"}
 
 # Engine tests
 engine_dir = os.path.join(input_dir, "engine")
