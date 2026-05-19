@@ -134,13 +134,88 @@ public class Runner {
             JsonObject r = c.deepCopy();
 
             String policy = c.has("configuration") ? c.get("configuration").getAsString() : null;
-            String plaintext = c.get("plaintext").getAsString();
+            String plaintext = c.has("plaintext") ? c.get("plaintext").getAsString() : "";
+            String forceMethod = c.has("force_method") ? c.get("force_method").getAsString() : null;
+            boolean expectError = c.has("expect_error") && c.get("expect_error").getAsBoolean();
+            String errorMustContain = c.has("error_must_contain") ? c.get("error_must_contain").getAsString() : null;
+            String inputOverride = c.has("input_override") ? c.get("input_override").getAsString() : null;
 
-            try {
-                if (client == null) {
-                    throw new IllegalStateException("No config provided for SDK test");
+            if (client == null) {
+                r.addProperty("error", "No config provided for SDK test");
+                r.addProperty("expect_error_satisfied", expectError);
+                results.add(r);
+                continue;
+            }
+
+            // ─── force_method dispatch ───
+            if (forceMethod != null) {
+                String errMsg = null;
+                try {
+                    switch (forceMethod) {
+                        case "protect_only": {
+                            String p = client.protect(plaintext, policy);
+                            r.addProperty("protected", p);
+                            if (c.has("expected")) r.addProperty("matches_expected", p.equals(c.get("expected").getAsString()));
+                            break;
+                        }
+                        case "protect_only_deterministic": {
+                            String p1 = client.protect(plaintext, policy);
+                            String p2 = client.protect(plaintext, policy);
+                            r.addProperty("protected", p1);
+                            r.addProperty("deterministic", p1.equals(p2));
+                            break;
+                        }
+                        case "access": {
+                            String p = client.protect(plaintext, policy);
+                            r.addProperty("protected", p);
+                            String a = client.access(p, policy);
+                            r.addProperty("accessed", a);
+                            r.addProperty("roundtrip", a.equals(plaintext));
+                            break;
+                        }
+                        case "access_by_header": {
+                            String p = client.protect(plaintext, policy);
+                            r.addProperty("protected", p);
+                            String a = client.accessByHeader(p);
+                            r.addProperty("accessed", a);
+                            r.addProperty("roundtrip", a.equals(plaintext));
+                            break;
+                        }
+                        case "access_by_header_unknown_prefix": {
+                            client.accessByHeader(inputOverride != null ? inputOverride : "ZZZ12345");
+                            break;
+                        }
+                        case "access_on_mask_output": {
+                            String m = client.protect(plaintext, policy);
+                            r.addProperty("protected", m);
+                            client.access(m, policy);
+                            break;
+                        }
+                        case "access_on_hash_output": {
+                            String h = client.protect(plaintext, policy);
+                            r.addProperty("protected", h);
+                            client.access(h, policy);
+                            break;
+                        }
+                        default:
+                            errMsg = "unknown force_method: " + forceMethod;
+                    }
+                } catch (Exception e) {
+                    errMsg = e.getClass().getSimpleName() + ": " + e.getMessage();
                 }
+                r.addProperty("error", errMsg);
+                boolean errored = errMsg != null;
+                r.addProperty("expect_error_satisfied", errored == expectError);
+                if (expectError && errorMustContain != null && errored) {
+                    r.addProperty("error_message_satisfied",
+                        errMsg.toLowerCase().contains(errorMustContain.toLowerCase()));
+                }
+                results.add(r);
+                continue;
+            }
 
+            // ─── default dispatch ───
+            try {
                 String protectedVal = client.protect(plaintext, policy);
                 r.addProperty("protected", protectedVal);
 
@@ -160,22 +235,19 @@ public class Runner {
                     r.addProperty("error", (String) null);
 
                 } else {
-                    // Reversible engine — test access
                     boolean tagEnabled = isTagEnabled(input, policy);
 
                     if (tagEnabled) {
-                        // Headered config: header-based access only. 2-arg access MUST error.
                         String accessed = client.accessByHeader(protectedVal);
                         r.addProperty("accessed", accessed);
                         r.addProperty("roundtrip", accessed.equals(plaintext));
                         try {
                             client.access(protectedVal, policy);
-                            r.addProperty("explicit_on_headered_errored", false); // bug: did not error
+                            r.addProperty("explicit_on_headered_errored", false);
                         } catch (Exception _e) {
-                            r.addProperty("explicit_on_headered_errored", true);  // expected
+                            r.addProperty("explicit_on_headered_errored", true);
                         }
                     } else {
-                        // Headerless config: 2-arg explicit access only.
                         String accessed = client.access(protectedVal, policy);
                         r.addProperty("accessed", accessed);
                         r.addProperty("roundtrip", accessed.equals(plaintext));
