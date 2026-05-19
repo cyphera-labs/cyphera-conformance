@@ -135,79 +135,163 @@ fn run_sdk(input: &Value) -> Value {
     for c in cases {
         let policy = c["configuration"].as_str().unwrap_or("test");
         let plaintext = c["plaintext"].as_str().unwrap_or("");
+        let force_method = c["force_method"].as_str();
+        let expect_error = c["expect_error"].as_bool().unwrap_or(false);
+        let error_must_contain = c["error_must_contain"].as_str();
+        let input_override = c["input_override"].as_str();
 
         let mut r = c.clone();
 
-        match &client {
+        let cl = match &client {
             None => {
                 r["error"] = json!("no config provided");
-            }
-            Some(Ok(cl)) => {
-                match cl.protect(policy, plaintext) {
-                    Ok(result) => {
-                        r["protected"] = json!(result.output);
-
-                        let engine_type = get_engine_from_config(input, policy);
-
-                        if engine_type == "mask" {
-                            if let Some(expected) = c["expected"].as_str() {
-                                r["matches_expected"] = json!(result.output == expected);
-                            }
-                            r["reversible"] = json!(false);
-                            r["error"] = json!(null);
-                        } else if engine_type == "hash" {
-                            if let Ok(second) = cl.protect(policy, plaintext) {
-                                r["deterministic"] = json!(result.output == second.output);
-                            }
-                            r["reversible"] = json!(false);
-                            r["error"] = json!(null);
-                        } else {
-                            let tag_enabled = is_tag_enabled(input, policy);
-
-                            if tag_enabled {
-                                // Headered config: header-based access only. 2-arg access MUST error.
-                                match cl.access_by_header(&result.output) {
-                                    Ok(accessed) => {
-                                        r["accessed"] = json!(accessed.output);
-                                        r["roundtrip"] = json!(accessed.output == plaintext);
-                                    }
-                                    Err(e) => {
-                                        r["roundtrip"] = json!(false);
-                                        r["error"] = json!(format!("{}", e));
-                                    }
-                                }
-                                match cl.access(policy, &result.output) {
-                                    Ok(_) => r["explicit_on_headered_errored"] = json!(false),
-                                    Err(_) => r["explicit_on_headered_errored"] = json!(true),
-                                }
-                            } else {
-                                // Headerless config: 2-arg explicit access only.
-                                match cl.access(policy, &result.output) {
-                                    Ok(accessed) => {
-                                        r["accessed"] = json!(accessed.output);
-                                        r["roundtrip"] = json!(accessed.output == plaintext);
-                                    }
-                                    Err(e) => {
-                                        r["roundtrip"] = json!(false);
-                                        r["error"] = json!(format!("{}", e));
-                                    }
-                                }
-                            }
-
-                            if !r.as_object().unwrap().contains_key("error") || r["error"].is_null() {
-                                r["error"] = json!(null);
-                            }
-                        }
-                    }
-                    Err(e) => {
-                        r["protected"] = json!(null);
-                        r["roundtrip"] = json!(false);
-                        r["error"] = json!(format!("{}", e));
-                    }
-                }
+                r["expect_error_satisfied"] = json!(expect_error);
+                results.push(r);
+                continue;
             }
             Some(Err(e)) => {
                 r["error"] = json!(format!("client build error: {}", e));
+                r["expect_error_satisfied"] = json!(expect_error);
+                results.push(r);
+                continue;
+            }
+            Some(Ok(cl)) => cl,
+        };
+
+        // ─── force_method dispatch ───
+        if let Some(method) = force_method {
+            let err_msg: Option<String> = match method {
+                "protect_only" => match cl.protect(policy, plaintext) {
+                    Ok(result) => {
+                        r["protected"] = json!(result.output);
+                        if let Some(expected) = c["expected"].as_str() {
+                            r["matches_expected"] = json!(result.output == expected);
+                        }
+                        None
+                    }
+                    Err(e) => Some(format!("{}", e)),
+                },
+                "protect_only_deterministic" => {
+                    match (cl.protect(policy, plaintext), cl.protect(policy, plaintext)) {
+                        (Ok(p1), Ok(p2)) => {
+                            r["protected"] = json!(p1.output);
+                            r["deterministic"] = json!(p1.output == p2.output);
+                            None
+                        }
+                        (Err(e), _) | (_, Err(e)) => Some(format!("{}", e)),
+                    }
+                }
+                "access" => match cl.protect(policy, plaintext)
+                    .and_then(|p| { r["protected"] = json!(p.output.clone()); cl.access(policy, &p.output) })
+                {
+                    Ok(a) => {
+                        r["accessed"] = json!(a.output);
+                        r["roundtrip"] = json!(a.output == plaintext);
+                        None
+                    }
+                    Err(e) => Some(format!("{}", e)),
+                },
+                "access_by_header" => match cl.protect(policy, plaintext)
+                    .and_then(|p| { r["protected"] = json!(p.output.clone()); cl.access_by_header(&p.output) })
+                {
+                    Ok(a) => {
+                        r["accessed"] = json!(a.output);
+                        r["roundtrip"] = json!(a.output == plaintext);
+                        None
+                    }
+                    Err(e) => Some(format!("{}", e)),
+                },
+                "access_by_header_unknown_prefix" => {
+                    let v = input_override.unwrap_or("ZZZ12345");
+                    match cl.access_by_header(v) {
+                        Ok(_) => None,
+                        Err(e) => Some(format!("{}", e)),
+                    }
+                }
+                "access_on_mask_output" | "access_on_hash_output" => {
+                    match cl.protect(policy, plaintext)
+                        .and_then(|p| { r["protected"] = json!(p.output.clone()); cl.access(policy, &p.output) })
+                    {
+                        Ok(_) => None,
+                        Err(e) => Some(format!("{}", e)),
+                    }
+                }
+                _ => Some(format!("unknown force_method: {}", method)),
+            };
+            r["error"] = match &err_msg {
+                Some(m) => json!(m),
+                None => json!(null),
+            };
+            let errored = err_msg.is_some();
+            r["expect_error_satisfied"] = json!(errored == expect_error);
+            if expect_error {
+                if let (Some(must_contain), Some(em)) = (error_must_contain, err_msg.as_ref()) {
+                    r["error_message_satisfied"] = json!(em.to_lowercase().contains(&must_contain.to_lowercase()));
+                }
+            }
+            results.push(r);
+            continue;
+        }
+
+        // ─── default dispatch ───
+        match cl.protect(policy, plaintext) {
+            Ok(result) => {
+                r["protected"] = json!(result.output);
+
+                let engine_type = get_engine_from_config(input, policy);
+
+                if engine_type == "mask" {
+                    if let Some(expected) = c["expected"].as_str() {
+                        r["matches_expected"] = json!(result.output == expected);
+                    }
+                    r["reversible"] = json!(false);
+                    r["error"] = json!(null);
+                } else if engine_type == "hash" {
+                    if let Ok(second) = cl.protect(policy, plaintext) {
+                        r["deterministic"] = json!(result.output == second.output);
+                    }
+                    r["reversible"] = json!(false);
+                    r["error"] = json!(null);
+                } else {
+                    let tag_enabled = is_tag_enabled(input, policy);
+
+                    if tag_enabled {
+                        match cl.access_by_header(&result.output) {
+                            Ok(accessed) => {
+                                r["accessed"] = json!(accessed.output);
+                                r["roundtrip"] = json!(accessed.output == plaintext);
+                            }
+                            Err(e) => {
+                                r["roundtrip"] = json!(false);
+                                r["error"] = json!(format!("{}", e));
+                            }
+                        }
+                        match cl.access(policy, &result.output) {
+                            Ok(_) => r["explicit_on_headered_errored"] = json!(false),
+                            Err(_) => r["explicit_on_headered_errored"] = json!(true),
+                        }
+                    } else {
+                        match cl.access(policy, &result.output) {
+                            Ok(accessed) => {
+                                r["accessed"] = json!(accessed.output);
+                                r["roundtrip"] = json!(accessed.output == plaintext);
+                            }
+                            Err(e) => {
+                                r["roundtrip"] = json!(false);
+                                r["error"] = json!(format!("{}", e));
+                            }
+                        }
+                    }
+
+                    if !r.as_object().unwrap().contains_key("error") || r["error"].is_null() {
+                        r["error"] = json!(null);
+                    }
+                }
+            }
+            Err(e) => {
+                r["protected"] = json!(null);
+                r["roundtrip"] = json!(false);
+                r["error"] = json!(format!("{}", e));
             }
         }
 
