@@ -8,9 +8,15 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/cyphera-labs/cyphera-go/alphabet"
 	"github.com/cyphera-labs/cyphera-go/engine/ff1"
+	"github.com/cyphera-labs/cyphera-go/engine/ff3"
 )
+
+// engineCipher is the common surface of the FF1 and FF3 ciphers.
+type engineCipher interface {
+	Encrypt(plaintext string) (string, error)
+	Decrypt(ciphertext string) (string, error)
+}
 
 func main() {
 	inputDir := "inputs"
@@ -28,12 +34,13 @@ func main() {
 		os.MkdirAll(engineOut, 0755)
 		files, _ := os.ReadDir(engineIn)
 		for _, f := range files {
-			if !strings.HasSuffix(f.Name(), ".json") || strings.Contains(f.Name(), "ff3") {
+			if !strings.HasSuffix(f.Name(), ".json") {
 				continue
 			}
+			isFF3 := strings.Contains(f.Name(), "ff3")
 			fmt.Printf("[engine] %s\n", f.Name())
 			data := readJSON(filepath.Join(engineIn, f.Name()))
-			result := runFF1Engine(data)
+			result := runEngine(data, isFF3)
 			writeJSON(filepath.Join(engineOut, f.Name()), result)
 		}
 	}
@@ -41,7 +48,7 @@ func main() {
 	fmt.Printf("Done. Results in %s\n", outputDir)
 }
 
-func runFF1Engine(data map[string]interface{}) map[string]interface{} {
+func runEngine(data map[string]interface{}, isFF3 bool) map[string]interface{} {
 	globalAlpha, _ := data["alphabet"].(string)
 	globalKey, _ := data["key"].(string)
 	globalTweak, _ := data["tweak"].(string)
@@ -65,21 +72,20 @@ func runFF1Engine(data map[string]interface{}) map[string]interface{} {
 		key, _ := hex.DecodeString(keyHex)
 		tweak, _ := hex.DecodeString(tweakHex)
 
-		alpha, err := alphabet.NewAlphabet(alphaStr)
+		var cipher engineCipher
+		var err error
+		if isFF3 {
+			cipher, err = ff3.New(key, tweak, alphaStr)
+		} else {
+			cipher, err = ff1.New(key, tweak, alphaStr)
+		}
 		if err != nil {
 			r["error"] = err.Error()
 			results = append(results, r)
 			continue
 		}
 
-		cipher, err := ff1.NewCipher(alpha.Radix(), key, tweak)
-		if err != nil {
-			r["error"] = err.Error()
-			results = append(results, r)
-			continue
-		}
-
-		ct, err := cipher.EncryptStringWithAlphabet(plaintext, tweak, alpha)
+		ct, err := cipher.Encrypt(plaintext)
 		if err != nil {
 			r["error"] = err.Error()
 			r["ciphertext"] = nil
@@ -88,7 +94,7 @@ func runFF1Engine(data map[string]interface{}) map[string]interface{} {
 			continue
 		}
 
-		dt, err := cipher.DecryptStringWithAlphabet(ct, tweak, alpha)
+		dt, err := cipher.Decrypt(ct)
 		if err != nil {
 			r["error"] = err.Error()
 			r["ciphertext"] = ct
