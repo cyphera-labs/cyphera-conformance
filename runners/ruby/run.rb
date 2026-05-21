@@ -53,7 +53,7 @@ def run_sdk(data)
   client = nil
   client_err = nil
   begin
-    client = Cyphera::Cyphera.new(data["config"]) if data["config"]
+    client = Cyphera::Client.new(data["config"]) if data["config"]
   rescue => e
     client_err = e.message
   end

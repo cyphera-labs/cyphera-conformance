@@ -100,7 +100,7 @@ func runEngine(_ input: [String: Any]) -> [String: Any] {
             r["ciphertext"] = NSNull()
             r["decrypted"] = NSNull()
             r["roundtrip"] = false
-            r["error"] = "\(error)"
+            r["error"] = error.localizedDescription
         }
 
         return r
@@ -124,7 +124,7 @@ func runSdk(_ input: [String: Any]) -> [String: Any] {
         do {
             client = try Cyphera(config: config)
         } catch {
-            clientError = "\(error)"
+            clientError = error.localizedDescription
         }
     }
 
@@ -183,7 +183,7 @@ func runSdk(_ input: [String: Any]) -> [String: Any] {
                     errMsg = "unknown force_method: \(method)"
                 }
             } catch {
-                errMsg = "\(error)"
+                errMsg = error.localizedDescription
             }
             r["error"] = errMsg ?? NSNull()
             let errored = errMsg != nil
@@ -235,7 +235,7 @@ func runSdk(_ input: [String: Any]) -> [String: Any] {
         } catch {
             r["protected"] = NSNull()
             r["roundtrip"] = false
-            r["error"] = "\(error)"
+            r["error"] = error.localizedDescription
         }
 
         return r
