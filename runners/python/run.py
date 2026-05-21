@@ -49,7 +49,7 @@ def run_engine(data):
             r["error"] = str(e)
         results.append(r)
 
-    return {**data, "results": results, "runner": "python", "sdk_version": "0.0.1a4"}
+    return {**data, "results": results, "runner": "python", "sdk_version": "0.0.1a6"}
 
 def run_sdk(data):
     client = None

@@ -86,7 +86,7 @@ function runEngine(input) {
     return r;
   });
 
-  return { ...input, results, runner: "node", sdk_version: "0.0.1-alpha.1" };
+  return { ...input, results, runner: "node", sdk_version: "0.0.1-alpha.4" };
 }
 
 function runSdk(input) {
