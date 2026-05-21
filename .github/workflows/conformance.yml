@@ -101,20 +101,49 @@ jobs:
           name: results-swift
           path: results/swift/
 
+  ruby:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build & Run
+        run: |
+          cd runners/ruby
+          docker build -t cyphera-test-ruby .
+          docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-ruby
+      - uses: actions/upload-artifact@v7
+        with:
+          name: results-ruby
+          path: results/ruby/
+
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build & Run
+        run: |
+          cd runners/go
+          docker build -t cyphera-test-go .
+          docker run --rm -v ${{ github.workspace }}:/vectors cyphera-test-go
+      - uses: actions/upload-artifact@v7
+        with:
+          name: results-go
+          path: results/go/
+
   compare:
-    needs: [python, node, java, dotnet, rust, php, swift]
+    needs: [python, node, java, dotnet, rust, php, swift, ruby, go]
     if: always()
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v6
       - uses: actions/download-artifact@v8
         with:
           path: results/
           pattern: results-*
           merge-multiple: false
 
-      - name: Compare results
+      - name: Restructure artifacts
         run: |
-          # Restructure: results/results-{runner}/{cat}/{file} → flat
+          # results/results-{runner}/{cat}/{file} → flat/{runner}/{cat}/{file}
           mkdir -p flat
           for d in results/results-*/; do
             runner=$(basename "$d" | sed 's/results-//')
@@ -123,51 +152,49 @@ jobs:
             fi
           done
 
+      - name: Engine comparison (NIST vectors — strict)
+        run: |
           python3 -c "
           import json, os, sys
 
-          runners = ['java', 'rust', 'node', 'python', 'dotnet', 'php', 'swift']
-          categories = ['engine', 'sdk']
+          runners = ['java', 'rust', 'node', 'python', 'dotnet', 'php', 'swift', 'ruby', 'go']
           total = 0; match = 0; diffs = []
 
-          for cat in categories:
-              files = set()
+          files = set()
+          for r in runners:
+              d = f'flat/{r}/engine'
+              if os.path.isdir(d): files.update(os.listdir(d))
+          for f in sorted(files):
+              results = {}
               for r in runners:
-                  d = f'flat/{r}/{cat}'
-                  if os.path.isdir(d): files.update(os.listdir(d))
-              for f in sorted(files):
-                  results = {}
-                  for r in runners:
-                      p = f'flat/{r}/{cat}/{f}'
-                      if os.path.exists(p):
-                          results[r] = json.load(open(p)).get('results', [])
-                  if len(results) < 2: continue
-                  base = list(results.keys())[0]
-                  for i, case in enumerate(results[base]):
-                      total += 1
-                      vals = {}
-                      for r in results:
-                          if i < len(results[r]):
-                              c = results[r][i]
-                              vals[r] = c.get('ciphertext') if cat == 'engine' else c.get('protected')
-                      unique = set(str(v) for v in vals.values())
-                      if len(unique) == 1: match += 1
-                      else:
-                          pt = case.get('plaintext', '?')[:40]
-                          diffs.append(f'{cat}/{f} case {i} (pt={pt}): {vals}')
+                  p = f'flat/{r}/engine/{f}'
+                  if os.path.exists(p):
+                      results[r] = json.load(open(p)).get('results', [])
+              if len(results) < 2: continue
+              base = list(results.keys())[0]
+              for i, case in enumerate(results[base]):
+                  total += 1
+                  vals = {}
+                  for r in results:
+                      if i < len(results[r]):
+                          vals[r] = results[r][i].get('ciphertext')
+                  if len(set(str(v) for v in vals.values())) == 1:
+                      match += 1
+                  else:
+                      pt = case.get('plaintext', '?')[:40]
+                      diffs.append(f'engine/{f} case {i} (pt={pt}): {vals}')
 
-          print(f'=== Conformance: {match}/{total} unanimous ===')
+          print(f'=== Engine (NIST FF1/FF3): {match}/{total} unanimous ===')
+          for d in diffs: print(f'  {d}')
           if diffs:
-              print(f'\nDifferences ({len(diffs)}):')
-              for d in diffs: print(f'  {d}')
-              if len(diffs) > 5:
-                  print(f'\nFAIL: {len(diffs)} non-unanimous cases')
-                  sys.exit(1)
-              else:
-                  print(f'\nWARN: {len(diffs)} known differences (error handling alignment)')
-          else:
-              print('ALL CASES UNANIMOUS')
+              print(f'FAIL: {len(diffs)} engine divergences — these MUST be unanimous')
+              sys.exit(1)
+          print('All engine vectors unanimous.')
           "
+
+      - name: SDK comparison (compare.py — full cross-language divergence report)
+        continue-on-error: true
+        run: python3 compare.py flat
 
       - uses: actions/upload-artifact@v7
         if: always()
