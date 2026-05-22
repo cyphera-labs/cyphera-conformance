@@ -1,3 +1,3 @@
 source "https://rubygems.org"
 
-gem "cyphera", "= 0.0.1.alpha.4"
+gem "cyphera", "= 0.0.1.alpha.5"

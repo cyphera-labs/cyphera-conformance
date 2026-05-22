@@ -94,7 +94,7 @@ fn run_engine(input: &Value) -> Value {
     let mut out = input.clone();
     out["results"] = json!(results);
     out["runner"] = json!("rust");
-    out["sdk_version"] = json!("0.0.1-alpha.6");
+    out["sdk_version"] = json!("0.0.1-alpha.7");
     out
 }
 
@@ -301,7 +301,7 @@ fn run_sdk(input: &Value) -> Value {
     let mut out = input.clone();
     out["results"] = json!(results);
     out["runner"] = json!("rust");
-    out["sdk_version"] = json!("0.0.1-alpha.6");
+    out["sdk_version"] = json!("0.0.1-alpha.7");
     out
 }
 
