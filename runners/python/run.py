@@ -51,7 +51,7 @@ def run_engine(data):
             r["error"] = str(e)
         results.append(r)
 
-    return {**data, "results": results, "runner": "python", "sdk_version": "0.0.1a6"}
+    return {**data, "results": results, "runner": "python", "sdk_version": "0.0.1a7"}
 
 def run_sdk(data):
     client = None
@@ -166,7 +166,7 @@ def run_sdk(data):
             r["error"] = str(e)
         results.append(r)
 
-    return {**data, "results": results, "runner": "python", "sdk_version": "0.0.1a6"}
+    return {**data, "results": results, "runner": "python", "sdk_version": "0.0.1a7"}
 
 # Engine tests
 engine_dir = os.path.join(input_dir, "engine")

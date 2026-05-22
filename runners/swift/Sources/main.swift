@@ -113,7 +113,7 @@ func runEngine(_ input: [String: Any]) -> [String: Any] {
     var out = input
     out["results"] = results
     out["runner"] = "swift"
-    out["sdk_version"] = "0.0.1-alpha.4"
+    out["sdk_version"] = "0.0.1-alpha.5"
     return out
 }
 
@@ -248,7 +248,7 @@ func runSdk(_ input: [String: Any]) -> [String: Any] {
     var out = input
     out["results"] = results
     out["runner"] = "swift"
-    out["sdk_version"] = "0.0.1-alpha.4"
+    out["sdk_version"] = "0.0.1-alpha.5"
     return out
 }
 
