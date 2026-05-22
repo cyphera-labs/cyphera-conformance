@@ -15,8 +15,8 @@
     }
   },
   "cases": [
-    { "configuration": "nonexistent",       "plaintext": "12345",  "force_method": "protect_only", "expect_error": true, "error_must_contain": "configuration",      "note": "[Configuration not found] — unknown name on protect" },
-    { "configuration": "nonexistent",       "plaintext": "12345",  "force_method": "access",       "expect_error": true, "error_must_contain": "configuration",      "note": "[Configuration not found] — unknown name on access" },
+    { "configuration": "nonexistent",       "plaintext": "12345",  "force_method": "protect_only",       "expect_error": true, "error_must_contain": "configuration",      "note": "[Configuration not found] — unknown name on protect" },
+    { "configuration": "nonexistent",       "plaintext": "12345",  "force_method": "access_with_config", "expect_error": true, "error_must_contain": "configuration",      "note": "[Configuration not found] — unknown name passed to 2-arg escape hatch" },
     { "configuration": "missing_key",       "plaintext": "123456789", "force_method": "protect_only", "expect_error": true, "error_must_contain": "key",          "note": "[Key not found] — key_ref points to a non-existent key" },
 
     { "configuration": "ssn",               "plaintext": "---",     "force_method": "protect_only", "expect_error": true, "error_must_contain": "encryptable",      "note": "[Zero encryptable characters] — all dashes (passthrough)" },
@@ -33,11 +33,8 @@
     { "configuration": "ssn_mask",          "plaintext": "123-45-6789", "force_method": "access_on_mask_output", "expect_error": true, "error_must_contain": "reverse", "note": "[Not reversible] — access on mask output" },
     { "configuration": "ssn_hash",          "plaintext": "123-45-6789", "force_method": "access_on_hash_output", "expect_error": true, "error_must_contain": "reverse", "note": "[Not reversible] — access on hash output" },
 
-    { "configuration": "ssn",               "plaintext": "123456789", "force_method": "access_by_header_unknown_prefix", "input_override": "ZZZ12345",   "expect_error": true, "error_must_contain": "no matching header", "note": "[No matching header] — access_by_header on garbage prefix" },
-    { "configuration": "ssn",               "plaintext": "123456789", "force_method": "access_by_header_unknown_prefix", "input_override": "",            "expect_error": true, "error_must_contain": "no matching header", "note": "[No matching header] — access_by_header on empty string" },
-    { "configuration": "ssn",               "plaintext": "123456789", "force_method": "access_by_header_unknown_prefix", "input_override": "T01",         "expect_error": true,                                          "note": "[Edge] — input matches header prefix exactly but has no ciphertext after — should error somehow (no encryptable / too short)" },
-
-    { "configuration": "ssn",               "plaintext": "123456789",       "force_method": "access", "expect_error": true, "error_must_contain": "header_enabled=true", "note": "[Explicit access on headered] — Option C error" },
-    { "configuration": "ssn",               "plaintext": "abc-xyz",         "force_method": "access", "expect_error": true, "error_must_contain": "header_enabled=true", "note": "[Explicit access on headered] — different input, same error" }
+    { "configuration": "ssn",               "plaintext": "123456789", "force_method": "access_unknown_input", "input_override": "ZZZ12345",   "expect_error": true, "error_must_contain": "no matching header", "note": "[No matching header] — 1-arg access(value) on garbage prefix" },
+    { "configuration": "ssn",               "plaintext": "123456789", "force_method": "access_unknown_input", "input_override": "",            "expect_error": true, "error_must_contain": "no matching header", "note": "[No matching header] — 1-arg access(value) on empty string" },
+    { "configuration": "ssn",               "plaintext": "123456789", "force_method": "access_unknown_input", "input_override": "T01",         "expect_error": true,                                          "note": "[Edge] — input matches header prefix exactly but has no ciphertext after — should error somehow (no encryptable / too short)" }
   ]
 }

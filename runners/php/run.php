@@ -149,22 +149,24 @@ function runSdk(array $input): array
                         $r['protected'] = $p1;
                         $r['deterministic'] = $p1 === $p2;
                         break;
-                    case 'access':
+                    case 'access_with_config':
+                        // 2-arg escape hatch: caller passes an explicit configuration name.
                         $p = $client->protect($plaintext, $policy);
                         $r['protected'] = $p;
                         $a = $client->access($p, $policy);
                         $r['accessed'] = $a;
                         $r['roundtrip'] = $a === $plaintext;
                         break;
-                    case 'access_by_header':
+                    case 'access':
+                        // 1-arg, header-driven primary path.
                         $p = $client->protect($plaintext, $policy);
                         $r['protected'] = $p;
-                        $a = $client->accessByHeader($p);
+                        $a = $client->access($p);
                         $r['accessed'] = $a;
                         $r['roundtrip'] = $a === $plaintext;
                         break;
-                    case 'access_by_header_unknown_prefix':
-                        $client->accessByHeader($inputOverride ?? 'ZZZ12345');
+                    case 'access_unknown_input':
+                        $client->access($inputOverride ?? 'ZZZ12345');
                         break;
                     case 'access_on_mask_output':
                         $m = $client->protect($plaintext, $policy);
@@ -211,23 +213,14 @@ function runSdk(array $input): array
                 $r['reversible'] = false;
                 $r['error'] = null;
             } else {
-                $tagEnabled = isTagEnabled($input, $policy);
-
-                if ($tagEnabled) {
-                    $accessed = $client->accessByHeader($protected);
-                    $r['accessed'] = $accessed;
-                    $r['roundtrip'] = $accessed === $plaintext;
-                    try {
-                        $client->access($protected, $policy);
-                        $r['explicit_on_headered_errored'] = false;
-                    } catch (\Throwable $_) {
-                        $r['explicit_on_headered_errored'] = true;
-                    }
-                } else {
-                    $accessed = $client->access($protected, $policy);
-                    $r['accessed'] = $accessed;
-                    $r['roundtrip'] = $accessed === $plaintext;
-                }
+                // Headered configs use the 1-arg primary path; headerless configs
+                // need the 2-arg escape hatch (no header for the SDK to match on).
+                $headerEnabled = isHeaderEnabled($input, $policy);
+                $accessed = $headerEnabled
+                    ? $client->access($protected)
+                    : $client->access($protected, $policy);
+                $r['accessed'] = $accessed;
+                $r['roundtrip'] = $accessed === $plaintext;
                 $r['error'] = null;
             }
         } catch (\Throwable $e) {
@@ -250,7 +243,7 @@ function getEngine(array $input, string $policy): string
     return $input['config']['configurations'][$policy]['engine'] ?? 'ff1';
 }
 
-function isTagEnabled(array $input, string $policy): bool
+function isHeaderEnabled(array $input, string $policy): bool
 {
     $te = $input['config']['configurations'][$policy]['header_enabled'] ?? null;
     return $te !== false;

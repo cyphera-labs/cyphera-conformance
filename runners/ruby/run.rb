@@ -91,20 +91,22 @@ def run_sdk(data)
           p2 = client.protect(pt, policy)
           r["protected"] = p1
           r["deterministic"] = p1 == p2
-        when "access"
+        when "access_with_config"
+          # 2-arg escape hatch: caller passes an explicit configuration name.
           p = client.protect(pt, policy)
           r["protected"] = p
           a = client.access(p, policy)
           r["accessed"] = a
           r["roundtrip"] = a == pt
-        when "access_by_header"
+        when "access"
+          # 1-arg, header-driven primary path.
           p = client.protect(pt, policy)
           r["protected"] = p
-          a = client.access_by_header(p)
+          a = client.access(p)
           r["accessed"] = a
           r["roundtrip"] = a == pt
-        when "access_by_header_unknown_prefix"
-          client.access_by_header(input_override || "ZZZ12345")
+        when "access_unknown_input"
+          client.access(input_override || "ZZZ12345")
         when "access_on_mask_output"
           m = client.protect(pt, policy)
           r["protected"] = m
@@ -135,7 +137,7 @@ def run_sdk(data)
 
       cfg = (data["config"]["configurations"] || {})[policy] || {}
       engine_type = cfg["engine"] || "ff1"
-      tag_enabled = cfg.fetch("header_enabled", true)
+      header_enabled = cfg.fetch("header_enabled", true)
 
       if engine_type == "mask"
         r["matches_expected"] = (protected_val == c["expected"]) if c.key?("expected")
@@ -147,21 +149,15 @@ def run_sdk(data)
         r["reversible"] = false
         r["error"] = nil
       else
-        if tag_enabled
-          accessed = client.access_by_header(protected_val)
-          r["accessed"] = accessed
-          r["roundtrip"] = accessed == pt
-          begin
-            client.access(protected_val, policy)
-            r["explicit_on_headered_errored"] = false
-          rescue
-            r["explicit_on_headered_errored"] = true
-          end
-        else
-          accessed = client.access(protected_val, policy)
-          r["accessed"] = accessed
-          r["roundtrip"] = accessed == pt
-        end
+        # Headered configs use the 1-arg primary path; headerless configs
+        # need the 2-arg escape hatch (no header for the SDK to match on).
+        accessed = if header_enabled
+                     client.access(protected_val)
+                   else
+                     client.access(protected_val, policy)
+                   end
+        r["accessed"] = accessed
+        r["roundtrip"] = accessed == pt
         r["error"] = nil
       end
     rescue => e

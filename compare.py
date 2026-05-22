@@ -41,7 +41,6 @@ COMPARE_FIELDS = [
     ("deterministic", "bool"),
     ("matches_expected", "bool"),
     ("matches_nist", "bool"),
-    ("explicit_on_headered_errored", "bool"),
 ]
 
 def case_id(case):

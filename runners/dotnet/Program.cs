@@ -170,8 +170,9 @@ JsonNode RunSdk(JsonNode input)
                         r["deterministic"] = p1 == p2;
                         break;
                     }
-                    case "access":
+                    case "access_with_config":
                     {
+                        // 2-arg escape hatch: caller passes an explicit configuration name.
                         var p = client.Protect(plaintext, policy);
                         r["protected"] = p;
                         var a = client.Access(p, policy);
@@ -179,17 +180,18 @@ JsonNode RunSdk(JsonNode input)
                         r["roundtrip"] = a == plaintext;
                         break;
                     }
-                    case "access_by_header":
+                    case "access":
                     {
+                        // 1-arg, header-driven primary path.
                         var p = client.Protect(plaintext, policy);
                         r["protected"] = p;
-                        var a = client.AccessByHeader(p);
+                        var a = client.Access(p);
                         r["accessed"] = a;
                         r["roundtrip"] = a == plaintext;
                         break;
                     }
-                    case "access_by_header_unknown_prefix":
-                        client.AccessByHeader(inputOverride ?? "ZZZ12345");
+                    case "access_unknown_input":
+                        client.Access(inputOverride ?? "ZZZ12345");
                         break;
                     case "access_on_mask_output":
                     {
@@ -232,7 +234,7 @@ JsonNode RunSdk(JsonNode input)
             r["protected"] = protected_;
 
             var engineType = GetEngine(input, policy);
-            var tagEnabled = IsTagEnabled(input, policy);
+            var headerEnabled = IsHeaderEnabled(input, policy);
 
             if (engineType == "mask")
             {
@@ -250,27 +252,13 @@ JsonNode RunSdk(JsonNode input)
             }
             else
             {
-                if (tagEnabled)
-                {
-                    var accessed = client.AccessByHeader(protected_);
-                    r["accessed"] = accessed;
-                    r["roundtrip"] = accessed == plaintext;
-                    try
-                    {
-                        client.Access(protected_, policy);
-                        r["explicit_on_headered_errored"] = false;
-                    }
-                    catch
-                    {
-                        r["explicit_on_headered_errored"] = true;
-                    }
-                }
-                else
-                {
-                    var accessed = client.Access(protected_, policy);
-                    r["accessed"] = accessed;
-                    r["roundtrip"] = accessed == plaintext;
-                }
+                // Headered configs use the 1-arg primary path; headerless configs
+                // need the 2-arg escape hatch (no header for the SDK to match on).
+                var accessed = headerEnabled
+                    ? client.Access(protected_)
+                    : client.Access(protected_, policy);
+                r["accessed"] = accessed;
+                r["roundtrip"] = accessed == plaintext;
                 r["error"] = null;
             }
         }
@@ -299,7 +287,7 @@ string GetEngine(JsonNode input, string policyName)
     catch { return "ff1"; }
 }
 
-bool IsTagEnabled(JsonNode input, string policyName)
+bool IsHeaderEnabled(JsonNode input, string policyName)
 {
     try
     {

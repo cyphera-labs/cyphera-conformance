@@ -78,7 +78,7 @@ def run_sdk(data):
             continue
 
         engine_type = data.get("config", {}).get("configurations", {}).get(policy, {}).get("engine", "ff1")
-        tag_enabled = data.get("config", {}).get("configurations", {}).get(policy, {}).get("header_enabled", True)
+        header_enabled = data.get("config", {}).get("configurations", {}).get(policy, {}).get("header_enabled", True)
 
         # ─── force_method dispatch (api_contract / error_conditions / schema_fidelity) ───
         if force_method:
@@ -94,29 +94,31 @@ def run_sdk(data):
                     p2 = client.protect(pt, policy)
                     r["protected"] = p1
                     r["deterministic"] = p1 == p2
+                elif force_method == "access_with_config":
+                    # 2-arg escape hatch: caller passes an explicit configuration name.
+                    protected = client.protect(pt, policy)
+                    r["protected"] = protected
+                    accessed = client.access(protected, configuration_name=policy)
+                    r["accessed"] = accessed
+                    r["roundtrip"] = accessed == pt
                 elif force_method == "access":
+                    # 1-arg, header-driven primary path.
                     protected = client.protect(pt, policy)
                     r["protected"] = protected
-                    accessed = client.access(protected, policy)
+                    accessed = client.access(protected)
                     r["accessed"] = accessed
                     r["roundtrip"] = accessed == pt
-                elif force_method == "access_by_header":
-                    protected = client.protect(pt, policy)
-                    r["protected"] = protected
-                    accessed = client.access_by_header(protected)
-                    r["accessed"] = accessed
-                    r["roundtrip"] = accessed == pt
-                elif force_method == "access_by_header_unknown_prefix":
-                    # Don't even protect — call access_by_header on a known-bad value
-                    client.access_by_header(input_override or "ZZZ12345")
+                elif force_method == "access_unknown_input":
+                    # Call the 1-arg header-driven access on a value with no known header.
+                    client.access(input_override or "ZZZ12345")
                 elif force_method == "access_on_mask_output":
                     masked = client.protect(pt, policy)
                     r["protected"] = masked
-                    client.access(masked, policy)
+                    client.access(masked, configuration_name=policy)
                 elif force_method == "access_on_hash_output":
                     hashed = client.protect(pt, policy)
                     r["protected"] = hashed
-                    client.access(hashed, policy)
+                    client.access(hashed, configuration_name=policy)
                 else:
                     r["error"] = f"unknown force_method: {force_method}"
             except Exception as e:
@@ -146,19 +148,14 @@ def run_sdk(data):
                 r["reversible"] = False
                 r["error"] = None
             else:
-                if tag_enabled:
-                    accessed = client.access_by_header(protected)
-                    r["accessed"] = accessed
-                    r["roundtrip"] = accessed == pt
-                    try:
-                        client.access(protected, policy)
-                        r["explicit_on_headered_errored"] = False
-                    except Exception:
-                        r["explicit_on_headered_errored"] = True
+                # Headered configs use the 1-arg primary path. Headerless configs
+                # have no header to find, so they require the 2-arg escape hatch.
+                if header_enabled:
+                    accessed = client.access(protected)
                 else:
-                    accessed = client.access(protected, policy)
-                    r["accessed"] = accessed
-                    r["roundtrip"] = accessed == pt
+                    accessed = client.access(protected, configuration_name=policy)
+                r["accessed"] = accessed
+                r["roundtrip"] = accessed == pt
                 r["error"] = None
         except Exception as e:
             r["protected"] = None

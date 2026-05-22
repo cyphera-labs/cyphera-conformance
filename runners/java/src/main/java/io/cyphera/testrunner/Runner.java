@@ -170,7 +170,8 @@ public class Runner {
                             r.addProperty("deterministic", p1.equals(p2));
                             break;
                         }
-                        case "access": {
+                        case "access_with_config": {
+                            // 2-arg escape hatch: caller passes an explicit configuration name.
                             String p = client.protect(plaintext, policy);
                             r.addProperty("protected", p);
                             String a = client.access(p, policy);
@@ -178,16 +179,17 @@ public class Runner {
                             r.addProperty("roundtrip", a.equals(plaintext));
                             break;
                         }
-                        case "access_by_header": {
+                        case "access": {
+                            // 1-arg, header-driven primary path.
                             String p = client.protect(plaintext, policy);
                             r.addProperty("protected", p);
-                            String a = client.accessByHeader(p);
+                            String a = client.access(p);
                             r.addProperty("accessed", a);
                             r.addProperty("roundtrip", a.equals(plaintext));
                             break;
                         }
-                        case "access_by_header_unknown_prefix": {
-                            client.accessByHeader(inputOverride != null ? inputOverride : "ZZZ12345");
+                        case "access_unknown_input": {
+                            client.access(inputOverride != null ? inputOverride : "ZZZ12345");
                             break;
                         }
                         case "access_on_mask_output": {
@@ -240,24 +242,14 @@ public class Runner {
                     r.addProperty("error", (String) null);
 
                 } else {
-                    boolean tagEnabled = isTagEnabled(input, policy);
-
-                    if (tagEnabled) {
-                        String accessed = client.accessByHeader(protectedVal);
-                        r.addProperty("accessed", accessed);
-                        r.addProperty("roundtrip", accessed.equals(plaintext));
-                        try {
-                            client.access(protectedVal, policy);
-                            r.addProperty("explicit_on_headered_errored", false);
-                        } catch (Exception _e) {
-                            r.addProperty("explicit_on_headered_errored", true);
-                        }
-                    } else {
-                        String accessed = client.access(protectedVal, policy);
-                        r.addProperty("accessed", accessed);
-                        r.addProperty("roundtrip", accessed.equals(plaintext));
-                    }
-
+                    // Headered configs use the 1-arg primary path; headerless configs
+                    // need the 2-arg escape hatch (no header for the SDK to match on).
+                    boolean headerEnabled = isHeaderEnabled(input, policy);
+                    String accessed = headerEnabled
+                        ? client.access(protectedVal)
+                        : client.access(protectedVal, policy);
+                    r.addProperty("accessed", accessed);
+                    r.addProperty("roundtrip", accessed.equals(plaintext));
                     r.addProperty("error", (String) null);
                 }
             } catch (Exception e) {
@@ -289,7 +281,7 @@ public class Runner {
         }
     }
 
-    static boolean isTagEnabled(JsonObject input, String policyName) {
+    static boolean isHeaderEnabled(JsonObject input, String policyName) {
         try {
             JsonObject policy = input.getAsJsonObject("config")
                                      .getAsJsonObject("configurations")

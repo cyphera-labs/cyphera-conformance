@@ -187,8 +187,21 @@ fn run_sdk(input: &Value) -> Value {
                         (Err(e), _) | (_, Err(e)) => Some(format!("{}", e)),
                     }
                 }
+                // 2-arg escape hatch: caller passes a configuration name explicitly.
+                // Rust spells this `access_with_config(name, value)`.
+                "access_with_config" => match cl.protect(policy, plaintext)
+                    .and_then(|p| { r["protected"] = json!(p.output.clone()); cl.access_with_config(policy, &p.output) })
+                {
+                    Ok(a) => {
+                        r["accessed"] = json!(a.output);
+                        r["roundtrip"] = json!(a.output == plaintext);
+                        None
+                    }
+                    Err(e) => Some(format!("{}", e)),
+                },
+                // 1-arg, header-driven primary path.
                 "access" => match cl.protect(policy, plaintext)
-                    .and_then(|p| { r["protected"] = json!(p.output.clone()); cl.access(policy, &p.output) })
+                    .and_then(|p| { r["protected"] = json!(p.output.clone()); cl.access(&p.output) })
                 {
                     Ok(a) => {
                         r["accessed"] = json!(a.output);
@@ -197,26 +210,16 @@ fn run_sdk(input: &Value) -> Value {
                     }
                     Err(e) => Some(format!("{}", e)),
                 },
-                "access_by_header" => match cl.protect(policy, plaintext)
-                    .and_then(|p| { r["protected"] = json!(p.output.clone()); cl.access_by_header(&p.output) })
-                {
-                    Ok(a) => {
-                        r["accessed"] = json!(a.output);
-                        r["roundtrip"] = json!(a.output == plaintext);
-                        None
-                    }
-                    Err(e) => Some(format!("{}", e)),
-                },
-                "access_by_header_unknown_prefix" => {
+                "access_unknown_input" => {
                     let v = input_override.unwrap_or("ZZZ12345");
-                    match cl.access_by_header(v) {
+                    match cl.access(v) {
                         Ok(_) => None,
                         Err(e) => Some(format!("{}", e)),
                     }
                 }
                 "access_on_mask_output" | "access_on_hash_output" => {
                     match cl.protect(policy, plaintext)
-                        .and_then(|p| { r["protected"] = json!(p.output.clone()); cl.access(policy, &p.output) })
+                        .and_then(|p| { r["protected"] = json!(p.output.clone()); cl.access_with_config(policy, &p.output) })
                     {
                         Ok(_) => None,
                         Err(e) => Some(format!("{}", e)),
@@ -259,33 +262,24 @@ fn run_sdk(input: &Value) -> Value {
                     r["reversible"] = json!(false);
                     r["error"] = json!(null);
                 } else {
-                    let tag_enabled = is_tag_enabled(input, policy);
+                    // Headered configs use the 1-arg primary path (header-driven).
+                    // Headerless configs have no header to match, so they need the
+                    // 2-arg escape hatch with an explicit configuration name.
+                    let header_enabled = is_header_enabled(input, policy);
 
-                    if tag_enabled {
-                        match cl.access_by_header(&result.output) {
-                            Ok(accessed) => {
-                                r["accessed"] = json!(accessed.output);
-                                r["roundtrip"] = json!(accessed.output == plaintext);
-                            }
-                            Err(e) => {
-                                r["roundtrip"] = json!(false);
-                                r["error"] = json!(format!("{}", e));
-                            }
-                        }
-                        match cl.access(policy, &result.output) {
-                            Ok(_) => r["explicit_on_headered_errored"] = json!(false),
-                            Err(_) => r["explicit_on_headered_errored"] = json!(true),
-                        }
+                    let access_result = if header_enabled {
+                        cl.access(&result.output)
                     } else {
-                        match cl.access(policy, &result.output) {
-                            Ok(accessed) => {
-                                r["accessed"] = json!(accessed.output);
-                                r["roundtrip"] = json!(accessed.output == plaintext);
-                            }
-                            Err(e) => {
-                                r["roundtrip"] = json!(false);
-                                r["error"] = json!(format!("{}", e));
-                            }
+                        cl.access_with_config(policy, &result.output)
+                    };
+                    match access_result {
+                        Ok(accessed) => {
+                            r["accessed"] = json!(accessed.output);
+                            r["roundtrip"] = json!(accessed.output == plaintext);
+                        }
+                        Err(e) => {
+                            r["roundtrip"] = json!(false);
+                            r["error"] = json!(format!("{}", e));
                         }
                     }
 
@@ -360,7 +354,7 @@ fn get_engine_from_config(input: &Value, policy_name: &str) -> String {
         .to_string()
 }
 
-fn is_tag_enabled(input: &Value, policy_name: &str) -> bool {
+fn is_header_enabled(input: &Value, policy_name: &str) -> bool {
     input["config"]["configurations"][policy_name]["header_enabled"]
         .as_bool()
         .unwrap_or(true)

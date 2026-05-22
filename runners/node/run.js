@@ -131,20 +131,22 @@ function runSdk(input) {
           const p2 = client.protect(plaintext, policy);
           r.protected = p1;
           r.deterministic = p1 === p2;
-        } else if (forceMethod === "access") {
+        } else if (forceMethod === "access_with_config") {
+          // 2-arg escape hatch: caller passes an explicit configuration name.
           const p = client.protect(plaintext, policy);
           r.protected = p;
           const a = client.access(p, policy);
           r.accessed = a;
           r.roundtrip = a === plaintext;
-        } else if (forceMethod === "access_by_header") {
+        } else if (forceMethod === "access") {
+          // 1-arg, header-driven primary path.
           const p = client.protect(plaintext, policy);
           r.protected = p;
-          const a = client.accessByHeader(p);
+          const a = client.access(p);
           r.accessed = a;
           r.roundtrip = a === plaintext;
-        } else if (forceMethod === "access_by_header_unknown_prefix") {
-          client.accessByHeader(inputOverride || "ZZZ12345");
+        } else if (forceMethod === "access_unknown_input") {
+          client.access(inputOverride || "ZZZ12345");
         } else if (forceMethod === "access_on_mask_output") {
           const m = client.protect(plaintext, policy);
           r.protected = m;
@@ -187,23 +189,14 @@ function runSdk(input) {
         r.reversible = false;
         r.error = null;
       } else {
-        const tagEnabled = isTagEnabled(input, policy);
-
-        if (tagEnabled) {
-          const accessed = client.accessByHeader(protected_);
-          r.accessed = accessed;
-          r.roundtrip = accessed === plaintext;
-          try {
-            client.access(protected_, policy);
-            r.explicit_on_headered_errored = false;
-          } catch (_) {
-            r.explicit_on_headered_errored = true;
-          }
-        } else {
-          const accessed = client.access(protected_, policy);
-          r.accessed = accessed;
-          r.roundtrip = accessed === plaintext;
-        }
+        // Headered configs use the 1-arg primary path; headerless configs
+        // need the 2-arg escape hatch (no header for the SDK to match on).
+        const headerEnabled = isHeaderEnabled(input, policy);
+        const accessed = headerEnabled
+          ? client.access(protected_)
+          : client.access(protected_, policy);
+        r.accessed = accessed;
+        r.roundtrip = accessed === plaintext;
         r.error = null;
       }
     } catch (e) {
@@ -226,7 +219,7 @@ function getEngine(input, policyName) {
   }
 }
 
-function isTagEnabled(input, policyName) {
+function isHeaderEnabled(input, policyName) {
   try {
     const te = input.config.configurations[policyName].header_enabled;
     return te !== false;

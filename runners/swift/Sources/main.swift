@@ -161,20 +161,22 @@ func runSdk(_ input: [String: Any]) -> [String: Any] {
                     let p2 = try client.protect(plaintext, configuration: policy)
                     r["protected"] = p1
                     r["deterministic"] = p1 == p2
-                case "access":
+                case "access_with_config":
+                    // 2-arg escape hatch: caller passes an explicit configuration name.
                     let p = try client.protect(plaintext, configuration: policy)
                     r["protected"] = p
                     let a = try client.access(p, configuration: policy)
                     r["accessed"] = a
                     r["roundtrip"] = a == plaintext
-                case "access_by_header":
+                case "access":
+                    // 1-arg, header-driven primary path.
                     let p = try client.protect(plaintext, configuration: policy)
                     r["protected"] = p
-                    let a = try client.accessByHeader(p)
+                    let a = try client.access(p)
                     r["accessed"] = a
                     r["roundtrip"] = a == plaintext
-                case "access_by_header_unknown_prefix":
-                    _ = try client.accessByHeader(inputOverride ?? "ZZZ12345")
+                case "access_unknown_input":
+                    _ = try client.access(inputOverride ?? "ZZZ12345")
                 case "access_on_mask_output":
                     let m = try client.protect(plaintext, configuration: policy)
                     r["protected"] = m
@@ -217,23 +219,17 @@ func runSdk(_ input: [String: Any]) -> [String: Any] {
                 r["reversible"] = false
                 r["error"] = NSNull()
             } else {
-                let tagEnabled = isTagEnabled(input, policy: policy)
-
-                if tagEnabled {
-                    let accessed = try client.accessByHeader(protected)
-                    r["accessed"] = accessed
-                    r["roundtrip"] = accessed == plaintext
-                    do {
-                        _ = try client.access(protected, configuration: policy)
-                        r["explicit_on_headered_errored"] = false
-                    } catch {
-                        r["explicit_on_headered_errored"] = true
-                    }
+                // Headered configs use the 1-arg primary path; headerless configs
+                // need the 2-arg escape hatch (no header for the SDK to match on).
+                let headerEnabled = isHeaderEnabled(input, policy: policy)
+                let accessed: String
+                if headerEnabled {
+                    accessed = try client.access(protected)
                 } else {
-                    let accessed = try client.access(protected, configuration: policy)
-                    r["accessed"] = accessed
-                    r["roundtrip"] = accessed == plaintext
+                    accessed = try client.access(protected, configuration: policy)
                 }
+                r["accessed"] = accessed
+                r["roundtrip"] = accessed == plaintext
                 r["error"] = NSNull()
             }
         } catch {
@@ -262,7 +258,7 @@ func getEngine(_ input: [String: Any], policy: String) -> String {
     return "ff1"
 }
 
-func isTagEnabled(_ input: [String: Any], policy: String) -> Bool {
+func isHeaderEnabled(_ input: [String: Any], policy: String) -> Bool {
     if let config = input["config"] as? [String: Any],
        let policies = config["configurations"] as? [String: Any],
        let pol = policies[policy] as? [String: Any],
