@@ -6,6 +6,7 @@ require_once '/app/vendor/autoload.php';
 
 use Cyphera\FF1;
 use Cyphera\FF3;
+use Cyphera\FF31;
 use Cyphera\Cyphera;
 
 $inputDir = $argv[1] ?? 'inputs';
@@ -97,7 +98,7 @@ function runEngine(array $input): array
 
     $input['results'] = $results;
     $input['runner'] = 'php';
-    $input['sdk_version'] = '0.0.1-alpha.4';
+    $input['sdk_version'] = '0.0.1-alpha.5';
     return $input;
 }
 
@@ -240,7 +241,7 @@ function runSdk(array $input): array
 
     $input['results'] = $results;
     $input['runner'] = 'php';
-    $input['sdk_version'] = '0.0.1-alpha.4';
+    $input['sdk_version'] = '0.0.1-alpha.5';
     return $input;
 }
 
