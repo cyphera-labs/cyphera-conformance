@@ -29,7 +29,11 @@ def run_engine(data)
     begin
       key = hex_to_bytes(key_hex)
       tweak = hex_to_bytes(tweak_hex)
-      cipher = engine == "ff3" ? Cyphera::FF3.new(key, tweak, alpha) : Cyphera::FF1.new(key, tweak, alpha)
+      cipher = case engine
+               when "ff3"  then Cyphera::FF3.new(key, tweak, alpha)
+               when "ff31" then Cyphera::FF31.new(key, tweak, alpha)
+               else Cyphera::FF1.new(key, tweak, alpha)
+               end
       ct = cipher.encrypt(pt)
       dt = cipher.decrypt(ct)
       r["ciphertext"] = ct

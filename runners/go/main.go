@@ -37,10 +37,9 @@ func main() {
 			if !strings.HasSuffix(f.Name(), ".json") {
 				continue
 			}
-			isFF3 := strings.Contains(f.Name(), "ff3")
 			fmt.Printf("[engine] %s\n", f.Name())
 			data := readJSON(filepath.Join(engineIn, f.Name()))
-			result := runEngine(data, isFF3)
+			result := runEngine(data)
 			writeJSON(filepath.Join(engineOut, f.Name()), result)
 		}
 	}
@@ -48,7 +47,11 @@ func main() {
 	fmt.Printf("Done. Results in %s\n", outputDir)
 }
 
-func runEngine(data map[string]interface{}, isFF3 bool) map[string]interface{} {
+func runEngine(data map[string]interface{}) map[string]interface{} {
+	engine, _ := data["engine"].(string)
+	if engine == "" {
+		engine = "ff1"
+	}
 	globalAlpha, _ := data["alphabet"].(string)
 	globalKey, _ := data["key"].(string)
 	globalTweak, _ := data["tweak"].(string)
@@ -74,9 +77,12 @@ func runEngine(data map[string]interface{}, isFF3 bool) map[string]interface{} {
 
 		var cipher engineCipher
 		var err error
-		if isFF3 {
+		switch engine {
+		case "ff3":
 			cipher, err = ff3.New(key, tweak, alphaStr)
-		} else {
+		case "ff31":
+			cipher, err = ff3.NewFF31(key, tweak, alphaStr)
+		default:
 			cipher, err = ff1.New(key, tweak, alphaStr)
 		}
 		if err != nil {

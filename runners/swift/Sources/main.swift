@@ -83,6 +83,10 @@ func runEngine(_ input: [String: Any]) -> [String: Any] {
                 let cipher = try FF3(key: key, tweak: tweak, alphabet: alpha)
                 encrypted = try cipher.encrypt(plaintext)
                 decrypted = try cipher.decrypt(encrypted)
+            } else if engine == "ff31" {
+                let cipher = try FF31(key: key, tweak: tweak, alphabet: alpha)
+                encrypted = try cipher.encrypt(plaintext)
+                decrypted = try cipher.decrypt(encrypted)
             } else {
                 let cipher = try FF1(key: key, tweak: tweak, alphabet: alpha)
                 encrypted = try cipher.encrypt(plaintext)

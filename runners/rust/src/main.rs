@@ -1,7 +1,7 @@
 use cyphera::Client;
 use cyphera::alphabet::Alphabet;
 use cyphera::ff1::core::FF1;
-use cyphera::ff3::core::FF3;
+use cyphera::ff3::core::{FF3, FF31};
 use cyphera::keys::{KeyRecord, KeyStatus, MemoryProvider};
 use cyphera::configuration::{Configuration, ConfigurationFile};
 use serde_json::{json, Value};
@@ -116,6 +116,12 @@ fn run_engine_case(engine: &str, alpha_str: &str, key_hex: &str, tweak_hex: &str
             let cipher = FF3::new(&key, &tweak, alphabet).map_err(|e| format!("FF3::new: {}", e))?;
             let encrypted = cipher.encrypt(plaintext).map_err(|e| format!("FF3::encrypt: {}", e))?;
             let decrypted = cipher.decrypt(&encrypted).map_err(|e| format!("FF3::decrypt: {}", e))?;
+            Ok((encrypted, decrypted))
+        }
+        "ff31" => {
+            let cipher = FF31::new(&key, &tweak, alphabet).map_err(|e| format!("FF31::new: {}", e))?;
+            let encrypted = cipher.encrypt(plaintext).map_err(|e| format!("FF31::encrypt: {}", e))?;
+            let decrypted = cipher.decrypt(&encrypted).map_err(|e| format!("FF31::decrypt: {}", e))?;
             Ok((encrypted, decrypted))
         }
         _ => Err(format!("unknown engine: {}", engine)),

@@ -2,7 +2,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const { FF1, FF3, Cyphera } = require("cyphera");
+const { FF1, FF3, FF31, Cyphera } = require("cyphera");
 
 const inputDir = process.argv[2] || "inputs";
 const outputDir = process.argv[3] || "results/node";
@@ -61,6 +61,10 @@ function runEngine(input) {
 
       if (engine === "ff3") {
         const cipher = new FF3(key, tweak, alpha);
+        encrypted = cipher.encrypt(plaintext);
+        decrypted = cipher.decrypt(encrypted);
+      } else if (engine === "ff31") {
+        const cipher = new FF31(key, tweak, alpha);
         encrypted = cipher.encrypt(plaintext);
         decrypted = cipher.decrypt(encrypted);
       } else {

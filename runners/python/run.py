@@ -4,7 +4,7 @@ import json
 import os
 import sys
 
-from cyphera import FF1, FF3, Cyphera
+from cyphera import FF1, FF3, FF31, Cyphera
 
 input_dir = sys.argv[1] if len(sys.argv) > 1 else "inputs"
 output_dir = sys.argv[2] if len(sys.argv) > 2 else "results/python"
@@ -32,6 +32,8 @@ def run_engine(data):
             t = hex_to_bytes(tweak)
             if engine == "ff3":
                 cipher = FF3(k, t, alpha)
+            elif engine == "ff31":
+                cipher = FF31(k, t, alpha)
             else:
                 cipher = FF1(k, t, alpha)
             ct = cipher.encrypt(pt)

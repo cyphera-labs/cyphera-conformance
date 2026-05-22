@@ -69,6 +69,8 @@ function runEngine(array $input): array
 
             if ($engine === 'ff3') {
                 $cipher = new FF3($key, $tweak, $alpha);
+            } elseif ($engine === 'ff31') {
+                $cipher = new FF31($key, $tweak, $alpha);
             } else {
                 $cipher = new FF1($key, $tweak, $alpha);
             }

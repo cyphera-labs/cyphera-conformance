@@ -70,6 +70,12 @@ JsonNode RunEngine(JsonNode input)
                 encrypted = cipher.Encrypt(plaintext);
                 decrypted = cipher.Decrypt(encrypted);
             }
+            else if (engine == "ff31")
+            {
+                var cipher = new FF31(key, tweak, alpha);
+                encrypted = cipher.Encrypt(plaintext);
+                decrypted = cipher.Decrypt(encrypted);
+            }
             else
             {
                 var cipher = new FF1(key, tweak, alpha);

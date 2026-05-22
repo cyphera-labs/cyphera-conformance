@@ -83,6 +83,11 @@ public class Runner {
                     FF3 ff3 = new FF3(hexToBytes(key), tweakBytes, alpha);
                     encrypted = ff3.encrypt(plaintext);
                     decrypted = ff3.decrypt(encrypted);
+                } else if ("ff31".equals(engine)) {
+                    io.cyphera.engine.ff3.FF31 ff31 =
+                        new io.cyphera.engine.ff3.FF31(hexToBytes(key), hexToBytes(tweak), alpha);
+                    encrypted = ff31.encrypt(plaintext);
+                    decrypted = ff31.decrypt(encrypted);
                 } else {
                     byte[] tweakBytes = (tweak == null || tweak.isEmpty()) ? new byte[0] : hexToBytes(tweak);
                     FF1 ff1 = new FF1(hexToBytes(key), tweakBytes, alpha);
