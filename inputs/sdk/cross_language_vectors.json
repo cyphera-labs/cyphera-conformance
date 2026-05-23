@@ -13,9 +13,9 @@
       "ff1_an_no":     { "engine": "ff1", "alphabet": "alphanumeric", "key_ref": "k1", "header_enabled": false },
       "ff1_hex":       { "engine": "ff1", "alphabet": "0123456789abcdef", "key_ref": "k1", "header": "HX1" },
       "ff1_dna":       { "engine": "ff1", "alphabet": "ACGT",         "key_ref": "k1", "header": "DNA" },
-      "ff3_d_h3":      { "engine": "ff3", "alphabet": "digits",       "key_ref": "k1", "header": "F3D" },
-      "ff3_an_h3":     { "engine": "ff3", "alphabet": "alphanumeric", "key_ref": "k1", "header": "F3N" },
-      "ff3_d_no":      { "engine": "ff3", "alphabet": "digits",       "key_ref": "k1", "header_enabled": false },
+      "ff3_d_h3":      { "engine": "ff3", "alphabet": "digits",       "key_ref": "k1", "header": "F3D", "tweak": "D8E7920AFA330A73" },
+      "ff3_an_h3":     { "engine": "ff3", "alphabet": "alphanumeric", "key_ref": "k1", "header": "F3N", "tweak": "D8E7920AFA330A73" },
+      "ff3_d_no":      { "engine": "ff3", "alphabet": "digits",       "key_ref": "k1", "header_enabled": false, "tweak": "D8E7920AFA330A73" },
       "k192_ff1_d_no": { "engine": "ff1", "alphabet": "digits",       "key_ref": "k192", "header_enabled": false },
       "k256_ff1_d_no": { "engine": "ff1", "alphabet": "digits",       "key_ref": "k256", "header_enabled": false }
     },

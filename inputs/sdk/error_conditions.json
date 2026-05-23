@@ -8,7 +8,7 @@
       "missing_key":   { "engine": "ff1", "header_enabled": false, "key_ref": "does-not-exist" },
       "ssn_mask":      { "engine": "mask", "pattern": "last4", "header_enabled": false },
       "ssn_hash":      { "engine": "hash", "algorithm": "sha256", "key_ref": "test-key", "header_enabled": false },
-      "ff3_digits_no": { "engine": "ff3", "alphabet": "digits", "header_enabled": false, "key_ref": "test-key" }
+      "ff3_digits_no": { "engine": "ff3", "alphabet": "digits", "header_enabled": false, "key_ref": "test-key", "tweak": "D8E7920AFA330A73" }
     },
     "keys": {
       "test-key": { "material": "2B7E151628AED2A6ABF7158809CF4F3C" }

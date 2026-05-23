@@ -47,7 +47,8 @@
         "engine": "ff3",
         "alphabet": "digits",
         "key_ref": "k",
-        "header": "F3D"
+        "header": "F3D",
+        "tweak": "D8E7920AFA330A73"
       },
       "header_length_5": {
         "engine": "ff1",

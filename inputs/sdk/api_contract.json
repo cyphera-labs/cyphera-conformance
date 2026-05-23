@@ -33,10 +33,10 @@
         "engine": "ff1", "alphabet": "alphanumeric", "key_ref": "test-key", "header": "XY", "header_length": 2
       },
       "ff3_digits": {
-        "engine": "ff3", "alphabet": "digits", "key_ref": "test-key", "header": "F31"
+        "engine": "ff3", "alphabet": "digits", "key_ref": "test-key", "header": "F31", "tweak": "D8E7920AFA330A73"
       },
       "ff3_no_header": {
-        "engine": "ff3", "alphabet": "digits", "header_enabled": false, "key_ref": "test-key"
+        "engine": "ff3", "alphabet": "digits", "header_enabled": false, "key_ref": "test-key", "tweak": "D8E7920AFA330A73"
       },
       "ssn_mask_last4": {
         "engine": "mask", "pattern": "last4", "header_enabled": false
