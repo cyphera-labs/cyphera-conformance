@@ -317,6 +317,7 @@ fn build_client(config: &Value) -> Result<Client, String> {
                 engine: p["engine"].as_str().unwrap_or("ff1").to_string(),
                 alphabet: p.get("alphabet").and_then(|v| v.as_str()).map(|s| s.to_string()),
                 key_ref: p.get("key_ref").and_then(|v| v.as_str()).map(|s| s.to_string()),
+                tweak: p.get("tweak").and_then(|v| v.as_str()).map(|s| s.to_string()),
                 header: p.get("header").and_then(|v| v.as_str()).map(|s| s.to_string()),
                 header_enabled,
                 header_length: p.get("header_length").and_then(|v| v.as_u64()).unwrap_or(3) as usize,
