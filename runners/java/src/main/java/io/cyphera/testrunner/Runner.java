@@ -117,7 +117,7 @@ public class Runner {
         JsonObject out = input.deepCopy();
         out.add("results", results);
         out.addProperty("runner", "java");
-        out.addProperty("sdk_version", "0.0.1-alpha.8");
+        out.addProperty("sdk_version", "0.0.1-alpha.9");
         return out;
     }
 
@@ -264,7 +264,7 @@ public class Runner {
         JsonObject out = input.deepCopy();
         out.add("results", results);
         out.addProperty("runner", "java");
-        out.addProperty("sdk_version", "0.0.1-alpha.8");
+        out.addProperty("sdk_version", "0.0.1-alpha.9");
         return out;
     }
 

@@ -5,7 +5,7 @@ require "cyphera"
 
 input_dir = ARGV[0] || "inputs"
 output_dir = ARGV[1] || "results/ruby"
-SDK_VERSION = "0.0.1.alpha.6"
+SDK_VERSION = "0.0.1.alpha.7"
 
 def hex_to_bytes(hex)
   return "" if hex.nil? || hex.empty?

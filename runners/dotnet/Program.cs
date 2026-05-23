@@ -104,7 +104,7 @@ JsonNode RunEngine(JsonNode input)
     var output = JsonNode.Parse(input.ToJsonString())!;
     output["results"] = results;
     output["runner"] = "dotnet";
-    output["sdk_version"] = "0.0.1-alpha.6";
+    output["sdk_version"] = "0.0.1-alpha.7";
     return output;
 }
 
@@ -275,7 +275,7 @@ JsonNode RunSdk(JsonNode input)
     var output = JsonNode.Parse(input.ToJsonString())!;
     output["results"] = results;
     output["runner"] = "dotnet";
-    output["sdk_version"] = "0.0.1-alpha.6";
+    output["sdk_version"] = "0.0.1-alpha.7";
     return output;
 }
 

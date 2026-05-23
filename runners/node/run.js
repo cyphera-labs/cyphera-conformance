@@ -90,7 +90,7 @@ function runEngine(input) {
     return r;
   });
 
-  return { ...input, results, runner: "node", sdk_version: "0.0.1-alpha.7" };
+  return { ...input, results, runner: "node", sdk_version: "0.0.1-alpha.8" };
 }
 
 function runSdk(input) {
@@ -208,7 +208,7 @@ function runSdk(input) {
     return r;
   });
 
-  return { ...input, results, runner: "node", sdk_version: "0.0.1-alpha.7" };
+  return { ...input, results, runner: "node", sdk_version: "0.0.1-alpha.8" };
 }
 
 function getEngine(input, policyName) {

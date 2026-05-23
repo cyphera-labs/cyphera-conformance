@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Cyphera" Version="0.0.1-alpha.6" />
+    <PackageReference Include="Cyphera" Version="0.0.1-alpha.7" />
   </ItemGroup>
 
 </Project>

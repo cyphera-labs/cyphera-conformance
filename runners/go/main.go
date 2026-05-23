@@ -141,7 +141,7 @@ func runEngine(data map[string]interface{}) map[string]interface{} {
 	out := copyMap(data)
 	out["results"] = results
 	out["runner"] = "go"
-	out["sdk_version"] = "0.0.1-alpha.8"
+	out["sdk_version"] = "0.0.1-alpha.9"
 	return out
 }
 
@@ -330,7 +330,7 @@ func runSdk(data map[string]interface{}) map[string]interface{} {
 	out := copyMap(data)
 	out["results"] = results
 	out["runner"] = "go"
-	out["sdk_version"] = "0.0.1-alpha.8"
+	out["sdk_version"] = "0.0.1-alpha.9"
 	return out
 }
 
