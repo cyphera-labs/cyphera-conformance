@@ -1,7 +1,9 @@
-FROM maven:3.9-eclipse-temurin-11
+FROM cgr.dev/chainguard/wolfi-base@sha256:02dab76bd852a70556b5b2002195c8a5fdab77d323c433bf6642aab080489795
+RUN apk add --no-cache openjdk-11 maven-3.9 && rm -rf /var/cache/apk/*
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+ENV PATH="$JAVA_HOME/bin:/usr/share/java/maven/bin:$PATH"
 WORKDIR /app
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
 COPY src/ src/
 RUN mvn package -B -q
 WORKDIR /vectors
